@@ -19,6 +19,14 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast") # -march=native
 set(CMAKE_C_FLAGS_RELEASE "-Ofast")
 
+if(CMAKE_GENERATOR_PLATFORM)
+    if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32" OR CMAKE_GENERATOR_PLATFORM STREQUAL "x86")        
+        add_compile_definitions(__i386__)
+    elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+        add_compile_definitions(__x86_64__)
+    endif()
+endif()
+
 if (NOT WIN32)
     # we need to specify this
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")

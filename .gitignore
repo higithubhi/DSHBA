@@ -11,3 +11,5 @@ files/krom/*
 .vs/
 out/
 *.dshba
+build
+vcpkg_installed

@@ -29,7 +29,7 @@ struct Overlay
     }
 
     void AddInfo(OVERLAY_INFO((*getter))) {
-        auto overlay_info = (s_overlay_info) { .getter = getter };
+        s_overlay_info overlay_info{ .getter = getter };
 
         this->info.push_back(overlay_info);
     }

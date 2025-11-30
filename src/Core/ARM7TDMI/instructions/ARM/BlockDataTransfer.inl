@@ -61,7 +61,7 @@ INSTRUCTION(BlockDataTransfer) {
     }
     else {
         // normal Rlists
-        u32 rcount = popcount(register_list);
+        u32 rcount = std::popcount(register_list);
         ASSUME(rcount <= 16);
         
         if (!U) {
@@ -79,7 +79,7 @@ INSTRUCTION(BlockDataTransfer) {
 #ifdef HAS_CTTZ
             if (unlikely(cttz(register_list) == rn)) {
 #else
-            if (unlikely(!(register_list & ((1 << rn) - 1))) {
+            if (unlikely(!(register_list & ((1 << rn) - 1)))) {
 #endif
                 // This is only the case if rn is the first register to be stored.
                 // e.g.: if rn is 4 and the Rlist ends in 0b11110000, we have

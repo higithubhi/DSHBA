@@ -64,7 +64,7 @@ enum class ExceptionVector : u32 {
 
 #ifdef _WIN32
 
-#define INSTRUCTION(_name) void __fastcall (_name)(u32 instruction)
+#define INSTRUCTION(_name) void (__fastcall _name)(u32 instruction)
 
 // #elif defined(__GNUC__) && __GNUC_MINOR__ > 3
 
@@ -74,9 +74,9 @@ enum class ExceptionVector : u32 {
 
 #endif
 
-typedef INSTRUCTION((ARM7TDMI::*ARMInstructionPtr));
-typedef INSTRUCTION((ARM7TDMI::*THUMBInstructionPtr));
-typedef INSTRUCTION((ARM7TDMI::*InstructionPtr));
+typedef INSTRUCTION(ARM7TDMI::*ARMInstructionPtr);
+typedef INSTRUCTION(ARM7TDMI::*THUMBInstructionPtr);
+typedef INSTRUCTION(ARM7TDMI::*InstructionPtr);
 
 template<u16 instruction> static constexpr THUMBInstructionPtr GetTHUMBInstruction();
 template<u32 instruction> static constexpr ARMInstructionPtr GetARMInstruction();

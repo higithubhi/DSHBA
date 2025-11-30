@@ -243,7 +243,7 @@ INSTRUCTION(MultipleLoadStore) {
 #ifdef HAS_CTTZ
         if (unlikely(cttz(rlist) == rb)) {
 #else
-        if (unlikely(!(rlist & ((1 << rb) - 1))) {
+        if (unlikely(!(rlist & ((1 << rb) - 1)))) {
 #endif
             // This is only the case if rn is the first register to be stored.
             // e.g.: if rn is 4 and the Rlist ends in 0b11110000, we have

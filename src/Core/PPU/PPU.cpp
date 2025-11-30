@@ -1198,7 +1198,7 @@ struct s_framebuffer GBAPPU::Render() {
     g = std::pow(( 30 * lb + 230 * lg +  10 * lr) / 255.0, 1.0 / outGamma) * (255.0 / 280.0);
     b = std::pow((220 * lb +  10 * lg +  50 * lr) / 255.0, 1.0 / outGamma) * (255.0 / 280.0);
 
-    return (s_framebuffer) {
+    return s_framebuffer {
             .id = TopFramebuffer,
             .src_width = INTERNAL_FRAMEBUFFER_WIDTH,
             .src_height = INTERNAL_FRAMEBUFFER_HEIGHT,

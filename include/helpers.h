@@ -2,14 +2,16 @@
 #define GC__HELPERS_H
 
 #include "default.h"
-
+#include <bit>
 #ifdef _MSC_VER
 #include <intrin.h>     // used in a bunch of stuff here
 #include <immintrin.h>
 #endif
 
 #if defined(__x86_64__) || defined(__i386__)
+#ifndef _MSC_VER
 #include <x86intrin.h>  // Not just <immintrin.h> for compilers other than icc
+#endif
 #endif
 
 #ifndef __cplusplus
@@ -28,11 +30,11 @@ static ALWAYS_INLINE u32 ROTL32(u32 uval, u32 rot) {
 
 #else
 static ALWAYS_INLINE u32 ROTR32(u32 uval, u32 rot) {
-    return (((uval) >> (n)) | ((uval) << (32 - (n))));
+    return std::rotr(uval, rot);
 }
 
 static ALWAYS_INLINE u32 ROTL32(u32 uval, u32 rot) {
-    return (((uval) << (n)) | ((uval) >> (32 - (n))));
+    return std::rotl(uval, rot);
 }
 #endif
 

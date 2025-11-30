@@ -269,8 +269,8 @@ struct ConsoleWidget
             return;
         }
 
-        char command[strlen(command_line) + 1];
-        STRCPY(command, sizeof(command), command_line);
+        char* command=(char*)alloca(strlen(command_line) + 1);
+        STRCPY(command, strlen(command_line)+1, command_line);
 
         char* args[MAX_ARGS + 1];
         int argc = ConsoleWidget::SplitCommand(command, args);

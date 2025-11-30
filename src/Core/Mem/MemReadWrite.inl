@@ -129,7 +129,7 @@ void Mem::Write(u32 address, T value) {
             }
             return;
         case MemoryRegion::PAL:
-            DirtyPAL |= ReadArray<T>(PAL, (address & 0x3ff) != value);
+            DirtyPAL |= (ReadArray<T>(PAL, (address & 0x3ff)) != value);
             if constexpr(std::is_same_v<T, u8>) {
                 // mirrored byte writes
                 WriteArray<u16>(PAL, address & 0x3ff, (u16)value | ((u16)value << 8));
@@ -164,7 +164,7 @@ void Mem::Write(u32 address, T value) {
                 // byte writes are ignored
                 return;
             }
-            DirtyOAM |= ReadArray<T>(OAM, (address & 0x3ff) != value);
+            DirtyOAM |= (ReadArray<T>(OAM, (address & 0x3ff)) != value);
             WriteArray<T>(OAM, address & 0x3ff, value);
             return;
         case MemoryRegion::ROM_L1:

@@ -14,7 +14,7 @@ bool Mem::FastDMA(s_DMAData* DMA) {
     const u32 length = DMA->CNT_L ? DMA->CNT_L : DMA->CNT_L_MAX;
     log_dma("Fast DMA %x -> %x (len: %x, control: %04x), size %d", DMA->SAD, DMA->DAD, length, DMA->CNT_H, sizeof(T));
 
-    bool cpu_affected;  // cpu affected by events
+    bool cpu_affected=false;  // cpu affected by events
 
     if constexpr(!intermittent_events) {
         // direct memcpy

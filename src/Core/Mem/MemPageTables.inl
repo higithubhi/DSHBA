@@ -1,13 +1,10 @@
 #ifndef INLINED_INCLUDES
 #include "Mem.h"
-
 class Mem_INL : Mem {
 #endif
-
-    // pages of 1kb
-    std::array<u8*, (0x1'0000'0000ULL >> 10)> ReadPageTable = [this] {
-        std::array<u8*, (0x1'0000'0000ULL >> 10)> table = {};
-
+    std::shared_ptr<std::array<u8*, (0x1'0000'0000ULL >> 10)>> _ReadPageTablePtr = [this] {
+        auto tablePtr = std::make_shared<std::array<u8*, (0x1'0000'0000ULL >> 10)>>();
+        auto& table = *tablePtr;
         for (u32 i = 0; i < 0x0100'0000; i += 0x400) {
             table[((static_cast<u32>(MemoryRegion::eWRAM) << 24) + i) >> 10] = &eWRAM[i & 0x7'ffff];
         }
@@ -33,10 +30,9 @@ class Mem_INL : Mem {
             table[((static_cast<u32>(MemoryRegion::ROM_L) << 24) + i) >> 10] = &ROM[i & 0x01ff'ffff];
         }
 
-        return table;
-    }();
-
-
+        return tablePtr;
+        }();
+    std::array<u8*, (0x1'0000'0000ULL >> 10)>& ReadPageTable = *_ReadPageTablePtr;
     void SetPageTableEEPROM() {
         for (u32 i = 0; i < 0x0600'0000; i += 0x400) {
             // also accounts for ROMSize

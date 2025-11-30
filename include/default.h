@@ -26,9 +26,13 @@
 #define FOPEN(stream, fname, mode) *stream = fopen(fname, mode)
 
 #endif
-
-#define ALWAYS_INLINE inline __attribute__((always_inline))
-
+#if defined(_MSC_VER)
+#define ALWAYS_INLINE __forceinline
+#elif defined(__GNUC__)
+#define ALWAYS_INLINE __attribute__((always_inline)) inline
+#else
+#define ALWAYS_INLINE inline
+#endif
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
