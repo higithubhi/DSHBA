@@ -13,106 +13,71 @@ uint readVRAM32(uint address);
 uint readIOreg(uint address);
 vec4 readPALentry(uint index);
 
-
-const uint DISPCNT_WIN0_EN = 1u << 13u; 
-const uint DISPCNT_WIN1_EN = 1u << 14u; 
-const uint DISPCNT_OBJWIN_EN = 1u << 15u;
-
 void main() {
-    
     uint DISPCNT = readIOreg(++DISPCNT++);
-    
-    if ((DISPCNT & (DISPCNT_WIN0_EN | DISPCNT_WIN1_EN | DISPCNT_OBJWIN_EN)) == 0u) {
+
+    if ((DISPCNT & 0xe000u) == 0u) {
+        // windows are disabled, enable all windows
+        // we should have caught this before rendering, but eh, I guess we'll check again...
         FragColor.x = 0x3fu;
         gl_FragDepth = 1.0;
         return;
     }
-    
-    
+
     uint x = clamp(uint(screenCoord.x), 0u, ++VISIBLE_SCREEN_WIDTH++ );
-    uint y = clamp(uint(screenCoord.y), 0u, ++VISIBLE_SCREEN_HEIGHT++);
+    uint y = clamp(uint(screenCoord.y), 0u, ++VISIBLE_SCREEN_HEIGHT++); 
 
-    
-    if ((DISPCNT & DISPCNT_WIN0_EN) != 0u) {
-       
-        uint WIN0H = readIOreg(++WIN0H++);
-        uint WIN0V = readIOreg(++WIN0V++);
-        
-        
-        uint X1 = clamp(WIN0H >> 8u, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint X2 = clamp(WIN0H & 0xffu, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint Y1 = clamp(WIN0V >> 8u, 0u, ++VISIBLE_SCREEN_HEIGHT++);
-        uint Y2 = clamp(WIN0V & 0xffu, 0u, ++VISIBLE_SCREEN_HEIGHT++);
+    // window 0 has higher priority
+    for (uint window = 0u; window < 2u; window++) {
+        if ((DISPCNT & (++DisplayWin0++ << window)) == 0u) {
+            // window disabled
+            continue;
+        }
 
-      
-        bool inVerticalRange = false;
+        uint WINH = readIOreg(++WIN0H++ + 2u * window);
+        uint WINV = readIOreg(++WIN0V++ + 2u * window);
+        uint WININ = (readIOreg(++WININ++) >> (window * 8u)) & 0x3fu;
+
+        uint X1 = clamp(WINH >> 8u, 0u, ++VISIBLE_SCREEN_WIDTH++ );
+        uint X2 = clamp(WINH & 0xffu, 0u, ++VISIBLE_SCREEN_WIDTH++ );
+        uint Y1 = clamp(WINV >> 8u, 0u, ++VISIBLE_SCREEN_HEIGHT++);
+        uint Y2 = clamp(WINV & 0xffu, 0u, ++VISIBLE_SCREEN_HEIGHT++);
+
         if (Y1 <= Y2) {
-            
-            inVerticalRange = (y >= Y1) && (y < Y2);
-        } else {
-           
-            inVerticalRange = (y > Y1) || (y <= Y2);
+            // no vert wrap and out of bounds, continue
+            if (y < Y1 || y >= Y2) {
+                continue;
+            }
+        }
+        else {
+            // vert wrap and "in bounds":
+            if ((y < Y1) && (y >= Y2)) {
+                continue;
+            }
         }
 
-       
-        bool inHorizontalRange = false;
         if (X1 <= X2) {
-            
-            inHorizontalRange = (x >= X1) && (x < X2);
-        } else {
-            
-            inHorizontalRange = (x > X1) || (x <= X2);
+            // no hor wrap
+            if (x >= X1 && x < X2) {
+                // pixel in WININ
+                FragColor.x = WININ;
+                gl_FragDepth = 0.0;
+                return;
+            }
         }
-
-       
-        if (inVerticalRange && inHorizontalRange) {
-            uint WININ = readIOreg(++WININ++);             
-            uint WIN0_IN = (WININ >> 0u) & 0x3fu;
-            FragColor.x = WIN0_IN;
-            gl_FragDepth = 0.0; 
-            return;
+        else {
+            // hor wrap
+            if (x < X2 || x >= X1) {
+                // pixel in WININ
+                FragColor.x = WININ;
+                gl_FragDepth = 0.0;
+                return;
+            }
         }
     }
 
-    if ((DISPCNT & DISPCNT_WIN1_EN) != 0u) {
-       
-        uint WIN1H = readIOreg(++WIN0H++ + 2u);
-        uint WIN1V = readIOreg(++WIN0V++ + 2u);
-        
-        
-        uint X1 = clamp(WIN1H >> 8u, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint X2 = clamp(WIN1H & 0xffu, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint Y1 = clamp(WIN1V >> 8u, 0u, ++VISIBLE_SCREEN_HEIGHT++ );
-        uint Y2 = clamp(WIN1V & 0xffu, 0u, ++VISIBLE_SCREEN_HEIGHT++ );
-
-       
-        bool inVerticalRange = false;
-        if (Y1 <= Y2) {
-            inVerticalRange = (y >= Y1) && (y < Y2);
-        } else {
-            inVerticalRange = (y > Y1) || (y <= Y2);
-        }
-
-       
-        bool inHorizontalRange = false;
-        if (X1 <= X2) {
-            inHorizontalRange = (x >= X1) && (x < X2);
-        } else {
-            inHorizontalRange = (x > X1) || (x <= X2);
-        }
-
-        
-        if (inVerticalRange && inHorizontalRange) {
-            uint WININ = readIOreg(++WININ++);
-           
-            uint WIN1_IN = (WININ >> 8u) & 0x3fu; 
-            FragColor.x = WIN1_IN;
-            gl_FragDepth = 0.0;
-            return;
-        }
-    }
-    uint WINOUT = readIOreg(++WINOUT++) & 0x3fu;
-    FragColor.x = WINOUT;
-    gl_FragDepth = 1.0; 
+    FragColor.x = readIOreg(++WINOUT++) & 0x3fu;  // WINOUT
+    gl_FragDepth = 1.0;
 }
+
 // END WindowFragmentShaderSource
