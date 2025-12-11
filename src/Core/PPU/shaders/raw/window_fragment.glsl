@@ -1,6 +1,6 @@
 // BEGIN WindowFragmentShaderSource
-precision mediump float;
 #version 320 es
+precision mediump float;
 
 in vec2 screenCoord;
 

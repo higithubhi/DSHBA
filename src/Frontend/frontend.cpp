@@ -132,7 +132,7 @@ int ui_run() {
     init_gamecontroller();
 
     // Decide GL+GLSL versions
-    const char* glsl_version = "#version 330";
+    const char* glsl_version = "#version 320 es";
 #if __APPLE__
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
 
@@ -151,7 +151,7 @@ int ui_run() {
 
     auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | // SDL_WINDOW_RESIZABLE |
                                            SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
+    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, 480, 320,
                                           window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
