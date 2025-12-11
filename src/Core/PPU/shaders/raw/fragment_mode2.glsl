@@ -1,6 +1,5 @@
 // BEGIN FragmentShaderMode2Source
-
-#version 330 core
+#version 320 es
 
 uniform uint BG;
 

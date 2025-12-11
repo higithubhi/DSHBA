@@ -1,6 +1,6 @@
 // BEGIN BlitFragmentShaderSource
-
-#version 330 core
+precision mediump float;
+#version 320 es
 
 in vec2 texCoord;
 

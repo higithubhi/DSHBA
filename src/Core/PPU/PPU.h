@@ -8,7 +8,7 @@
 #include "default.h"
 #include "helpers.h"
 
-#include <glad/glad.h>
+#include <GLES3/gl32.h>
 
 #include <mutex>
 #include <array>

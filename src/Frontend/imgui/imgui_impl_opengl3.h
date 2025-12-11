@@ -65,7 +65,7 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyDeviceObjects();
 
 // Otherwise try to detect supported Desktop OpenGL loaders..
 #else
-#include "glad/glad.h"
+#include <GLES3/gl32.h>
 #endif
 
 #endif

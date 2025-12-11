@@ -13,13 +13,13 @@
 #ifdef NDEBUG
 #define DEFAULT_DEBUGGER_WIDGET_STATE false
 #else
-#define DEFAULT_DEBUGGER_WIDGET_STATE true
+#define DEFAULT_DEBUGGER_WIDGET_STATE false
 #endif
 
 static bool show_console = DEFAULT_DEBUGGER_WIDGET_STATE;
 static bool show_register_viewer = DEFAULT_DEBUGGER_WIDGET_STATE;
 static bool show_disassembly_viewer = DEFAULT_DEBUGGER_WIDGET_STATE;
-static bool show_overlay = false;
+static bool show_overlay = true;
 static bool show_memory_viewer = DEFAULT_DEBUGGER_WIDGET_STATE;
 static bool show_cached_block_stats = DEFAULT_DEBUGGER_WIDGET_STATE;
 
@@ -86,12 +86,12 @@ void debugger_video_init(const char* glsl_version, SDL_Window* window, SDL_GLCon
     ImGui::StyleColorsDark();
 
     // Initialize OpenGL loader
-    bool err = gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress) == 0;
-    if (err)
-    {
-        fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-        exit(1);
-    }
+//    bool err = gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress) == 0;
+//    if (err)
+//    {
+//        fprintf(stderr, "Failed to initialize OpenGL loader!\n");
+//        exit(1);
+//    }
 
     // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);

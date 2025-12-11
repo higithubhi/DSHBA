@@ -1,6 +1,5 @@
 // BEGIN VertexShaderSource
-
-#version 330 core
+#version 320 es
 
 layout (location = 0) in vec2 position;
 

@@ -4,8 +4,8 @@ project(DSHBA LANGUAGES C CXX)
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # check of LTO
-include(CheckIPOSupported)
-check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
+#include(CheckIPOSupported)
+#check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -44,7 +44,7 @@ add_compile_definitions(
         $<$<CONFIG:RELEASE>:BOOST_DISABLE_ASSERTS>
 )
 
-add_executable(DSHBA
+add_library(DSHBA STATIC
         main.cpp
         include/default.h
         include/helpers.h
@@ -52,9 +52,6 @@ add_executable(DSHBA
         include/log.h
         include/sleeping.h
         include/const.h
-        modules/glad/glad.h
-        modules/glad/glad.c
-        modules/KHR/khrplatform.h
         debugging.h
         init.cpp
         init.h

@@ -1,5 +1,6 @@
 // externally added
-#version 330 core
+precision mediump float;
+#version 320 es
 
 // BEGIN ObjectFragmentShaderSource
 

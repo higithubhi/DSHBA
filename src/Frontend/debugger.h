@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <GLES3/gl32.h>
 #include <SDL.h>
 
 #undef SHOW_EXAMPLE_MENU

@@ -5,7 +5,7 @@
 #include "controller.h"
 #include "settings.h"
 
-#include "widgets/file_dialog.h"
+//#include "widgets/file_dialog.h"
 
 #include <cstdio>
 #include <SDL.h>
@@ -18,7 +18,7 @@ const unsigned WINDOW_HEIGHT = 720;
 #define FILE_BROWSER_PWD_SETTING "PWD"
 
 static struct s_frontend {
-    ImGui::FileBrowser file_dialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_CloseOnEsc);
+    //ImGui::FileBrowser file_dialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_CloseOnEsc);
 
     ImGuiIO io;
     s_controller controller;
@@ -91,12 +91,12 @@ void open_file_explorer(const char* title, char** filters, size_t filter_count, 
         _filters.push_back(filters[i]);
     }
 
-    if (!Frontend.file_dialog.IsOpened()) {
-        Frontend.file_dialog.callback = callback;
-        Frontend.file_dialog.SetTitle(title);
-        Frontend.file_dialog.SetTypeFilters(_filters);
-        Frontend.file_dialog.Open();
-    }
+//    if (!Frontend.file_dialog.IsOpened()) {
+//        Frontend.file_dialog.callback = callback;
+//        Frontend.file_dialog.SetTitle(title);
+//        Frontend.file_dialog.SetTypeFilters(_filters);
+//        Frontend.file_dialog.Open();
+//    }
 }
 
 SDL_GameController* gamecontroller = nullptr;
@@ -124,7 +124,7 @@ void init_gamecontroller() {
 }
 
 int ui_run() {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER ) != 0) {
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
@@ -139,9 +139,9 @@ int ui_run() {
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #endif
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
     // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -151,7 +151,7 @@ int ui_run() {
 
     auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | // SDL_WINDOW_RESIZABLE |
                                            SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window *window = SDL_CreateWindow("DSHBA", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
+    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
                                           window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
@@ -174,7 +174,7 @@ int ui_run() {
 
     if (settings.Has(FILE_BROWSER_PWD_SETTING)) {
         std::string pwd = settings.Get(FILE_BROWSER_PWD_SETTING);
-        Frontend.file_dialog.SetPwd(pwd);
+        //Frontend.file_dialog.SetPwd(pwd);
     }
 
     printf("Done initializing frontend\n");
@@ -246,7 +246,7 @@ int ui_run() {
         debugger_render();
         // ImGui::ShowDemoWindow();
 
-        Frontend.file_dialog.Handle();
+        //Frontend.file_dialog.Handle();
 
         // Rendering
         ImGui::Render();
@@ -300,7 +300,7 @@ int ui_run() {
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
-    settings.Set(FILE_BROWSER_PWD_SETTING, Frontend.file_dialog.GetPwd().string());
+    //settings.Set(FILE_BROWSER_PWD_SETTING, Frontend.file_dialog.GetPwd().string());
     settings.Dump();
 
     if (Frontend.video_destroy) {

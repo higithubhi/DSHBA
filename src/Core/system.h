@@ -40,7 +40,7 @@ private:
     friend class Initializer;
 
 #undef main
-    friend int main();
+    friend int game_main(const char* bios,const char* rom);
     friend void exception_handler();
 
     i32 timer = 0;

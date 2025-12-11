@@ -1,6 +1,5 @@
 // BEGIN FragmentHelperSource
-
-#version 330 core
+#version 320 es
 
 /* GENERAL */
 in vec2 OnScreenPos;

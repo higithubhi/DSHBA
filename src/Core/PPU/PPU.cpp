@@ -14,7 +14,7 @@
 #include <map>
 #include <SDL.h>
 
-const char* glsl_version = "#version 330 core\n";
+const char* glsl_version = "#version 320 es\n";
 
 #define INTERNAL_FRAMEBUFFER_WIDTH 480
 #define INTERNAL_FRAMEBUFFER_HEIGHT 320
@@ -209,18 +209,19 @@ void GBAPPU::InitFramebuffers() {
     // create a texture to render to and fill it with 0 (also set filtering to low)
     glGenTextures(1, &TopTexture);
     glBindTexture(GL_TEXTURE_2D, TopTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8_SNORM, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
-                 0, GL_RGBA, GL_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TopTexture, 0);
+    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TopTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TopTexture, 0);
     glColorMask(1, 1, 1, 1);
     GLenum draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(1, draw_buffers);
@@ -241,10 +242,10 @@ void GBAPPU::InitFramebuffers() {
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, BottomTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,BottomTexture, 0);
     glDrawBuffers(1, draw_buffers);
 
     CheckFramebufferInit("general top");
@@ -261,11 +262,11 @@ void GBAPPU::InitFramebuffers() {
 
     // add depth buffer
     glGenRenderbuffers(1, &WinDepthBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, WinDepthBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, VISIBLE_SCREEN_WIDTH, VISIBLE_SCREEN_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, WinDepthBuffer);        
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, WinDepthBuffer);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, WinTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,WinTexture, 0);
     GLenum tex_draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(1, tex_draw_buffers);
 
@@ -517,8 +518,8 @@ void GBAPPU::InitBGBuffers() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeof(PALMEM) >> 1, 256, 0, GL_BGRA,
-                 GL_UNSIGNED_SHORT_1_5_5_5_REV, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeof(PALMEM) >> 1, 256, 0, GL_RGBA,
+                 GL_UNSIGNED_SHORT_5_5_5_1, nullptr);
 
     BGPALLocation = glGetUniformLocation(BGProgram, "PAL");
 
@@ -595,12 +596,12 @@ void GBAPPU::InitObjBuffers() {
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
     glGenTextures(1, &OAMTexture);
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1,0, GL_RGBA_INTEGER,
                  GL_SHORT, nullptr);
 
     ObjOAMLocation = glGetUniformLocation(ObjProgram, "OAM");
@@ -689,12 +690,12 @@ void GBAPPU::InitWinObjBuffers() {
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
     glGenTextures(1, &OAMTexture);
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1, 0, GL_RGBA_INTEGER,
                  GL_SHORT, nullptr);
 
     WinObjOAMLocation = glGetUniformLocation(WinObjProgram, "OAM");
@@ -781,8 +782,8 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
     glBindBuffer(GL_ARRAY_BUFFER, ObjVBO);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ObjEBO);
-    glEnable(GL_PRIMITIVE_RESTART);
-    glPrimitiveRestartIndex(0xffff);
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
 
@@ -814,9 +815,9 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
         }
 
         // bind and buffer OAM texture
-        glBindTexture(GL_TEXTURE_1D, OAMTexture);
-        glTexSubImage1D(GL_TEXTURE_1D, 0, 0, sizeof(OAMMEM) >> 3,
-                        GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
+        glBindTexture(GL_TEXTURE_2D, OAMTexture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(OAMMEM) >> 3, 1, GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
+                        
 
         glUniform1ui(WinObjYClipStartLocation, scanline);
         glUniform1ui(WinObjYClipEndLocation, scanline + batch_size);
@@ -843,11 +844,11 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
         // should actually be !=, but just to be sure we don't ever get stuck
     } while (scanline < VISIBLE_SCREEN_HEIGHT);
 
-    glDisable(GL_PRIMITIVE_RESTART);
+    glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindTexture(GL_TEXTURE_1D, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -903,9 +904,8 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
 
     // bind and buffer OAM texture
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, sizeof(OAMMEM) >> 3,
-                    GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
+    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(OAMMEM) >> 3, 1, GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::LCDIO));
     glBindTexture(GL_TEXTURE_2D, IOTexture);
@@ -916,8 +916,8 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
     glBindBuffer(GL_ARRAY_BUFFER, ObjVBO);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ObjEBO);
-    glEnable(GL_PRIMITIVE_RESTART);
-    glPrimitiveRestartIndex(0xffff);
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);    
+    
 
     glUniform1ui(ObjYClipStartLocation, scanline);
     glUniform1ui(ObjYClipEndLocation, scanline + amount);
@@ -969,12 +969,12 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
         log_ppu("%d affine objects enabled in lines %d - %d", NumberOfObjVerts >> 2, scanline, scanline + amount);
     }
 
-    glDisable(GL_PRIMITIVE_RESTART);
+    glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindTexture(GL_TEXTURE_1D, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -1111,7 +1111,7 @@ struct s_framebuffer GBAPPU::Render() {
     glBindTexture(GL_TEXTURE_2D, PALTexture);
     log_ppu("Buffer %d PAL scanlines", PALBufferIndexBuffer[DrawFrame][VISIBLE_SCREEN_HEIGHT - 1] + 1);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(PALMEM) >> 1, PALBufferIndexBuffer[DrawFrame][VISIBLE_SCREEN_HEIGHT - 1] + 1,
-                    GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, PALBuffer[DrawFrame]);
+                    GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, PALBuffer[DrawFrame]);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // buffer IO texture

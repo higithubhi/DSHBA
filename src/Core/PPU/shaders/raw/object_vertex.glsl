@@ -1,5 +1,5 @@
 // defined externally
-#version 330 core
+#version 320 es
 
 // BEGIN ObjectVertexShaderSource
 

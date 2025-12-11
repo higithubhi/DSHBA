@@ -46,12 +46,13 @@ void benchmark() {
 #endif
 
 #undef main
-int main() {
+int game_main(const char* bios,const char* rom) {
     gba = Initializer::init();
 
     // gba->LoadBIOS(std::string("D:\\Data\\GBA\\BIOS\\bios.bin"));
     // gba->LoadBIOS(std::string(BIOS_FILE));
-
+    gba->LoadBIOS(bios);
+    gba->LoadROM(rom);
 #ifdef BENCHMARKING
     benchmark();
     return 0;
@@ -59,10 +60,8 @@ int main() {
 
 #ifdef DO_BREAKPOINTS
     gba->CPU.Paused = false;
-#endif
-
+#endif    
     atexit(exception_handler);
-
     std::thread ui_thread(ui_run);
 
     gba->Run();
