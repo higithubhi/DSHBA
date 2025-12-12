@@ -9,9 +9,9 @@
 
 #include <cstdio>
 #include <SDL.h>
-
-const unsigned WINDOW_WIDTH = 1280;
-const unsigned WINDOW_HEIGHT = 720;
+SDL_atomic_t bCanCreateWindow;
+unsigned WINDOW_WIDTH = 1280;
+unsigned WINDOW_HEIGHT = 720;
 #define FPS 60
 #define DELTA_TIME (1000 / FPS)
 
@@ -151,8 +151,11 @@ int ui_run() {
 
     auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | // SDL_WINDOW_RESIZABLE |
                                            SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, 1360, 910,
-                                          window_flags);
+    
+     while (SDL_AtomicGet(&bCanCreateWindow) == SDL_FALSE) {
+        SDL_Delay(10);
+    }    
+    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, WINDOW_WIDTH,WINDOW_HEIGHT,window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // vsync
@@ -239,17 +242,17 @@ int ui_run() {
         }
 
         // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window);
-        ImGui::NewFrame();
+        //ImGui_ImplOpenGL3_NewFrame();
+        //ImGui_ImplSDL2_NewFrame(window);
+        //ImGui::NewFrame();
 
-        debugger_render();
+        //debugger_render();
         // ImGui::ShowDemoWindow();
 
         //Frontend.file_dialog.Handle();
 
         // Rendering
-        ImGui::Render();
+        //ImGui::Render();
 
 #ifdef SHOW_EXAMPLE_MENU
         ImGui::ShowDemoWindow(NULL);
@@ -266,7 +269,7 @@ int ui_run() {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(emu_framebuffer.r, emu_framebuffer.g, emu_framebuffer.b, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);        
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         float scale = (float) WINDOW_WIDTH / emu_framebuffer.dest_width;
@@ -275,8 +278,9 @@ int ui_run() {
         }
 
         float offsx = ((WINDOW_WIDTH - scale * emu_framebuffer.dest_width) / WINDOW_WIDTH);
-        float offsy = ((WINDOW_HEIGHT - scale * emu_framebuffer.dest_height) / WINDOW_WIDTH);
-
+        float offsy = ((WINDOW_HEIGHT - scale * emu_framebuffer.dest_height) / WINDOW_HEIGHT);
+        offsx=0;
+        offsy=0;
         const float render_data[] = {
                 -1 + offsx, -1 + offsy, 0, 0,
                  1 - offsx, -1 + offsy, 1, 0,
@@ -289,7 +293,7 @@ int ui_run() {
         }
 
         // then draw the imGui stuff over it
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // frameswap
         SDL_GL_SwapWindow(window);
