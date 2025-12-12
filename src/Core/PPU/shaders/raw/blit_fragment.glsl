@@ -17,12 +17,12 @@ void main() {
     FragColor = vec4(
         top.rgb, 1
     );
-    if ((bottom.a != -1) && (bottom.a <= 0)) {
+    if ((bottom.a != 0) && (bottom.a <= 0.5)) {
         // there was a bottom layer in the bottom framebuffer
         if (top.a >= 0) {
             FragColor = vec4(
                 // correct for how we store bottom alpha
-                top.rgb * top.a - 2 * bottom.rgb * (bottom.a + 0.25), 1
+                top.rgb * top.a + 2 * bottom.rgb * (bottom.a - 0.25), 1
             );
         }
     }

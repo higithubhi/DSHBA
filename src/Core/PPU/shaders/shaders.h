@@ -21,12 +21,12 @@ const char* BlitFragmentShaderSource =
 "    FragColor = vec4(\n                                                                            "    // l:16
 "        top.rgb, 1\n                                                                               "    // l:17
 "    );\n                                                                                           "    // l:18
-"    if ((bottom.a != -1) && (bottom.a <= 0)) {\n                                                   "    // l:19
+"    if ((bottom.a != 0) && (bottom.a <= 0.5)) {\n                                                  "    // l:19
 "        // there was a bottom layer in the bottom framebuffer\n                                    "    // l:20
 "        if (top.a >= 0) {\n                                                                        "    // l:21
 "            FragColor = vec4(\n                                                                    "    // l:22
 "                // correct for how we store bottom alpha\n                                         "    // l:23
-"                top.rgb * top.a - 2 * bottom.rgb * (bottom.a + 0.25), 1\n                          "    // l:24
+"                top.rgb * top.a + 2 * bottom.rgb * (bottom.a - 0.25), 1\n                          "    // l:24
 "            );\n                                                                                   "    // l:25
 "        }\n                                                                                        "    // l:26
 "    }\n                                                                                            "    // l:27

@@ -234,8 +234,8 @@ void GBAPPU::InitFramebuffers() {
     // create a texture to render to and fill it with 0 (also set filtering to low)
     glGenTextures(1, &BottomTexture);
     glBindTexture(GL_TEXTURE_2D, BottomTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8_SNORM, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
-                 0, GL_RGBA, GL_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
