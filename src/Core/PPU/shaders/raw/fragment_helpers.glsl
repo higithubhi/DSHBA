@@ -4,7 +4,7 @@
 /* GENERAL */
 in vec2 OnScreenPos;
 
-uniform sampler2D PAL;
+uniform usampler2D PAL;
 uniform usampler2D VRAM;
 uniform usampler2D IO;
 uniform isampler2D OAM;
@@ -12,7 +12,7 @@ uniform usampler2D Window;
 
 uniform bool Bottom;
 
-uniform int PALBufferIndex[++VISIBLE_SCREEN_HEIGHT++];
+uniform uint PALBufferIndex[++VISIBLE_SCREEN_HEIGHT++];
 
 uint readIOreg(uint address);
 
@@ -142,11 +142,16 @@ ivec4 readOAMentry(uint index) {
     );
 }
 
+vec3 decodeBGR555(uint v) {
+    uint r =  v        & 31u;
+    uint g = (v >> 5u) & 31u;
+    uint b = (v >> 10u)& 31u;
+    return vec3(r, g, b) / 31.0;
+}
+
 vec4 readPALentry(uint index) {
-    // Conveniently, since PAL stores the converted colors already, getting a color from an index is as simple as this:
-    return texelFetch(
-        PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0
-    );
+    uint v = texelFetch(PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0).r;
+    return vec4(decodeBGR555(v), 1.0);
 }
 
 uint getWindow(uint x, uint y) {

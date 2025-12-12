@@ -363,14 +363,14 @@ const char* FragmentShaderSource =
 ;
 
 
-// FragmentHelperSource (from fragment_helpers.glsl, lines 1 to 157)
+// FragmentHelperSource (from fragment_helpers.glsl, lines 1 to 162)
 const char* FragmentHelperSource = 
 "#version 320 es\n                                                                                  "    // l:1
 "\n                                                                                                 "    // l:2
 "/* GENERAL */\n                                                                                    "    // l:3
 "in vec2 OnScreenPos;\n                                                                             "    // l:4
 "\n                                                                                                 "    // l:5
-"uniform sampler2D PAL;\n                                                                           "    // l:6
+"uniform usampler2D PAL;\n                                                                          "    // l:6
 "uniform usampler2D VRAM;\n                                                                         "    // l:7
 "uniform usampler2D IO;\n                                                                           "    // l:8
 "uniform isampler2D OAM;\n                                                                          "    // l:9
@@ -378,7 +378,7 @@ const char* FragmentHelperSource =
 "\n                                                                                                 "    // l:11
 "uniform bool Bottom;\n                                                                             "    // l:12
 "\n                                                                                                 "    // l:13
-"uniform int PALBufferIndex[160u];\n                                                                "    // l:14
+"uniform uint PALBufferIndex[160u];\n                                                               "    // l:14
 "\n                                                                                                 "    // l:15
 "uint readIOreg(uint address);\n                                                                    "    // l:16
 "\n                                                                                                 "    // l:17
@@ -508,19 +508,24 @@ const char* FragmentHelperSource =
 "    );\n                                                                                           "    // l:141
 "}\n                                                                                                "    // l:142
 "\n                                                                                                 "    // l:143
-"vec4 readPALentry(uint index) {\n                                                                  "    // l:144
-"    // Conveniently, since PAL stores the converted colors already, getting a color from an index is as simple as this:\n"    // l:145
-"    return texelFetch(\n                                                                           "    // l:146
-"        PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0\n                                "    // l:147
-"    );\n                                                                                           "    // l:148
+"vec3 decodeBGR555(uint v) {\n                                                                      "    // l:144
+"    uint r =  v        & 31u;\n                                                                    "    // l:145
+"    uint g = (v >> 5u) & 31u;\n                                                                    "    // l:146
+"    uint b = (v >> 10u)& 31u;\n                                                                    "    // l:147
+"    return vec3(r, g, b) / 31.0;\n                                                                 "    // l:148
 "}\n                                                                                                "    // l:149
 "\n                                                                                                 "    // l:150
-"uint getWindow(uint x, uint y) {\n                                                                 "    // l:151
-"    return texelFetch(\n                                                                           "    // l:152
-"        Window, ivec2(x, 160u - y), 0\n                                                            "    // l:153
-"    ).r;\n                                                                                         "    // l:154
-"}\n                                                                                                "    // l:155
-"\n                                                                                                 "    // l:156
+"vec4 readPALentry(uint index) {\n                                                                  "    // l:151
+"    uint v = texelFetch(PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0).r;\n            "    // l:152
+"    return vec4(decodeBGR555(v), 1.0);\n                                                           "    // l:153
+"}\n                                                                                                "    // l:154
+"\n                                                                                                 "    // l:155
+"uint getWindow(uint x, uint y) {\n                                                                 "    // l:156
+"    return texelFetch(\n                                                                           "    // l:157
+"        Window, ivec2(x, 160u - y), 0\n                                                            "    // l:158
+"    ).r;\n                                                                                         "    // l:159
+"}\n                                                                                                "    // l:160
+"\n                                                                                                 "    // l:161
 ;
 
 

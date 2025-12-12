@@ -151,7 +151,7 @@ int ui_run() {
 
     auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | // SDL_WINDOW_RESIZABLE |
                                            SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, 480, 320,
+    SDL_Window *window = SDL_CreateWindow("DSHBA", 0, 0, 1360, 910,
                                           window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);

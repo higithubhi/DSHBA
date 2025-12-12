@@ -217,7 +217,7 @@ void GBAPPU::InitFramebuffers() {
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
     //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TopTexture, 0);
@@ -242,13 +242,13 @@ void GBAPPU::InitFramebuffers() {
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,BottomTexture, 0);
     glDrawBuffers(1, draw_buffers);
 
-    CheckFramebufferInit("general top");
+    CheckFramebufferInit("general bottom");
 
     glGenFramebuffers(1, &WinFramebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, WinFramebuffer);
@@ -263,7 +263,7 @@ void GBAPPU::InitFramebuffers() {
     // add depth buffer
     glGenRenderbuffers(1, &WinDepthBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, WinDepthBuffer);        
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, WinDepthBuffer);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,WinTexture, 0);
@@ -518,8 +518,8 @@ void GBAPPU::InitBGBuffers() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeof(PALMEM) >> 1, 256, 0, GL_RGBA,
-                 GL_UNSIGNED_SHORT_5_5_5_1, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16UI, sizeof(PALMEM) >> 1, 256, 0, GL_RED_INTEGER,
+                 GL_UNSIGNED_SHORT, nullptr);
 
     BGPALLocation = glGetUniformLocation(BGProgram, "PAL");
 
@@ -1111,7 +1111,7 @@ struct s_framebuffer GBAPPU::Render() {
     glBindTexture(GL_TEXTURE_2D, PALTexture);
     log_ppu("Buffer %d PAL scanlines", PALBufferIndexBuffer[DrawFrame][VISIBLE_SCREEN_HEIGHT - 1] + 1);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(PALMEM) >> 1, PALBufferIndexBuffer[DrawFrame][VISIBLE_SCREEN_HEIGHT - 1] + 1,
-                    GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, PALBuffer[DrawFrame]);
+                    GL_RED_INTEGER, GL_UNSIGNED_SHORT, PALBuffer[DrawFrame]);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // buffer IO texture
