@@ -18,6 +18,9 @@ private:
     static CONSOLE_COMMAND(pause_system);
     static CONSOLE_COMMAND(unpause_system);
     static CONSOLE_COMMAND(tester);
+//    static CONSOLE_COMMAND(capture_start);
+//    static CONSOLE_COMMAND(capture_stop);
+//    static CONSOLE_COMMAND(capture_status);
 
     static MENU_ITEM_CALLBACK(toggle_frameskip);
     static MENU_ITEM_CALLBACK(toggle_sync_to_video);

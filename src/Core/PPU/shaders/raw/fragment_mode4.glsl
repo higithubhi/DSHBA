@@ -1,7 +1,4 @@
 // BEGIN FragmentShaderMode4Source
-#version 320 es
-
-uniform uint BG;
 
 uint readVRAM8(uint address);
 uint readVRAM16(uint address);

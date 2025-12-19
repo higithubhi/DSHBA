@@ -89,7 +89,7 @@ vec4 regularScreenEntryPixel(uint dx, uint dy, uint ScreenEntry, uint CBB, bool 
         }
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1);
+            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1.0);
         }
     }
     else {
@@ -101,7 +101,7 @@ vec4 regularScreenEntryPixel(uint dx, uint dy, uint ScreenEntry, uint CBB, bool 
         uint VRAMEntry = readVRAM8(Address);
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry(VRAMEntry).rgb, 1);
+            return vec4(readPALentry(VRAMEntry).rgb, 1.0);
         }
     }
 
@@ -200,8 +200,8 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
     );
 
     vec2 pos  = screen_pos - vec2(0, ReferenceLine);
-    int x_eff = int(BGX + dot(vec2(PA, PB), pos));
-    int y_eff = int(BGY + dot(vec2(PC, PD), pos));
+    int x_eff = int(float(BGX) + dot(vec2(PA, PB), pos));
+    int y_eff = int(float(BGY) + dot(vec2(PC, PD), pos));
 
     // correct for fixed point math
     x_eff >>= 8;
@@ -222,7 +222,7 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
     if ((BGCNT & ++BG_MOSAIC++) != 0u) {
         uint MOSAIC = readIOreg(++MOSAIC++);
         x_eff -= x_eff % int((MOSAIC & 0xfu) + 1u);
-        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4) + 1u);
+        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4u) + 1u);
     }
 
     uint TIDAddress = (SBB << 11u);  // base
@@ -237,7 +237,7 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
         discard;
     }
 
-    return vec4(readPALentry(VRAMEntry).rgb, 1);
+    return vec4(readPALentry(VRAMEntry).rgb, 1.0);
 }
 
 vec4 mode0(uint, uint);
@@ -257,7 +257,7 @@ void main() {
         CheckBottom(5u, window);
 
         // backdrop, highest frag depth
-        gl_FragDepth = 1;
+        gl_FragDepth = 1.0;
         FragColor = ColorCorrect(vec4(readPALentry(0u).rgb, 1.0));
         FragColor = AlphaCorrect(FragColor, 5u, window);
         return;
@@ -291,7 +291,7 @@ void main() {
             outColor = mode4(x, y);
             break;
         default:
-            outColor = vec4(float(x) / float(++VISIBLE_SCREEN_WIDTH++), float(y) / float(++VISIBLE_SCREEN_HEIGHT++), 1, 1);
+            outColor = vec4(float(x) / float(++VISIBLE_SCREEN_WIDTH++), float(y) / float(++VISIBLE_SCREEN_HEIGHT++), 1.0, 1.0);
             break;
     }
 

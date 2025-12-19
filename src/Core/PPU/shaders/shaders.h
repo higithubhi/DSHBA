@@ -1,7 +1,7 @@
 #ifndef GC__SHADER_H
 #define GC__SHADER_H
 
-// BlitFragmentShaderSource (from blit_fragment.glsl, lines 1 to 30)
+// BlitFragmentShaderSource (from blit_fragment.glsl, lines 1 to 32)
 const char* BlitFragmentShaderSource = 
 "#version 320 es\n                                                                                  "    // l:1
 "precision mediump float;\n                                                                         "    // l:2
@@ -19,42 +19,45 @@ const char* BlitFragmentShaderSource =
 "\n                                                                                                 "    // l:14
 "    // default: pick top\n                                                                         "    // l:15
 "    FragColor = vec4(\n                                                                            "    // l:16
-"        top.rgb, 1\n                                                                               "    // l:17
+"        top.rgb, 1.0\n                                                                             "    // l:17
 "    );\n                                                                                           "    // l:18
-"    if ((bottom.a != -1) && (bottom.a <= 0)) {\n                                                   "    // l:19
-"        // there was a bottom layer in the bottom framebuffer\n                                    "    // l:20
-"        if (top.a >= 0) {\n                                                                        "    // l:21
-"            FragColor = vec4(\n                                                                    "    // l:22
-"                // correct for how we store bottom alpha\n                                         "    // l:23
-"                top.rgb * top.a - 2 * bottom.rgb * (bottom.a + 0.25), 1\n                          "    // l:24
-"            );\n                                                                                   "    // l:25
-"        }\n                                                                                        "    // l:26
-"    }\n                                                                                            "    // l:27
-"}\n                                                                                                "    // l:28
-"\n                                                                                                 "    // l:29
+"\n                                                                                                 "    // l:19
+"    if ((bottom.a != 0.0) && (bottom.a <= 0.5)) {\n                                                "    // l:20
+"        if (top.a >= 0.5) {\n                                                                      "    // l:21
+"            float topASNorm = (top.a * 2.0) - 1.0;\n                                               "    // l:22
+"            float bottomASNorm = (bottom.a * 2.0) - 1.0;\n                                         "    // l:23
+"            vec3 blendedColor = top.rgb * topASNorm - 2.0 * bottom.rgb * (bottomASNorm + 0.25);\n  "    // l:24
+"            FragColor = vec4(\n                                                                    "    // l:25
+"                blendedColor, 1.0\n                                                                "    // l:26
+"            );\n                                                                                   "    // l:27
+"        }\n                                                                                        "    // l:28
+"    }\n                                                                                            "    // l:29
+"}\n                                                                                                "    // l:30
+"\n                                                                                                 "    // l:31
 ;
 
 
-// BlitVertexShaderSource (from blit_vertex.glsl, lines 1 to 19)
+// BlitVertexShaderSource (from blit_vertex.glsl, lines 1 to 20)
 const char* BlitVertexShaderSource = 
 "#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"layout (location = 0) in vec2 position;\n                                                          "    // l:3
-"layout (location = 1) in vec2 inTexCoord;\n                                                        "    // l:4
-"\n                                                                                                 "    // l:5
-"out vec2 texCoord;  // needed for fragment_helpers\n                                               "    // l:6
-"\n                                                                                                 "    // l:7
-"void main() {\n                                                                                    "    // l:8
-"    texCoord = inTexCoord;\n                                                                       "    // l:9
-"\n                                                                                                 "    // l:10
-"    gl_Position = vec4(\n                                                                          "    // l:11
-"        position.x,\n                                                                              "    // l:12
-"        position.y,\n                                                                              "    // l:13
-"        0,\n                                                                                       "    // l:14
-"        1\n                                                                                        "    // l:15
-"    );\n                                                                                           "    // l:16
-"}\n                                                                                                "    // l:17
-"\n                                                                                                 "    // l:18
+"precision mediump float;\n                                                                         "    // l:2
+"\n                                                                                                 "    // l:3
+"layout (location = 0) in vec2 position;\n                                                          "    // l:4
+"layout (location = 1) in vec2 inTexCoord;\n                                                        "    // l:5
+"\n                                                                                                 "    // l:6
+"out vec2 texCoord;  // needed for fragment_helpers\n                                               "    // l:7
+"\n                                                                                                 "    // l:8
+"void main() {\n                                                                                    "    // l:9
+"    texCoord = inTexCoord;\n                                                                       "    // l:10
+"\n                                                                                                 "    // l:11
+"    gl_Position = vec4(\n                                                                          "    // l:12
+"        position.x,\n                                                                              "    // l:13
+"        position.y,\n                                                                              "    // l:14
+"        0,\n                                                                                       "    // l:15
+"        1\n                                                                                        "    // l:16
+"    );\n                                                                                           "    // l:17
+"}\n                                                                                                "    // l:18
+"\n                                                                                                 "    // l:19
 ;
 
 
@@ -150,7 +153,7 @@ const char* FragmentShaderSource =
 "        }\n                                                                                        "    // l:88
 "\n                                                                                                 "    // l:89
 "        if (VRAMEntry != 0u) {\n                                                                   "    // l:90
-"            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1);\n                    "    // l:91
+"            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1.0);\n                  "    // l:91
 "        }\n                                                                                        "    // l:92
 "    }\n                                                                                            "    // l:93
 "    else {\n                                                                                       "    // l:94
@@ -162,7 +165,7 @@ const char* FragmentShaderSource =
 "        uint VRAMEntry = readVRAM8(Address);\n                                                     "    // l:100
 "\n                                                                                                 "    // l:101
 "        if (VRAMEntry != 0u) {\n                                                                   "    // l:102
-"            return vec4(readPALentry(VRAMEntry).rgb, 1);\n                                         "    // l:103
+"            return vec4(readPALentry(VRAMEntry).rgb, 1.0);\n                                       "    // l:103
 "        }\n                                                                                        "    // l:104
 "    }\n                                                                                            "    // l:105
 "\n                                                                                                 "    // l:106
@@ -261,8 +264,8 @@ const char* FragmentShaderSource =
 "    );\n                                                                                           "    // l:199
 "\n                                                                                                 "    // l:200
 "    vec2 pos  = screen_pos - vec2(0, ReferenceLine);\n                                             "    // l:201
-"    int x_eff = int(BGX + dot(vec2(PA, PB), pos));\n                                               "    // l:202
-"    int y_eff = int(BGY + dot(vec2(PC, PD), pos));\n                                               "    // l:203
+"    int x_eff = int(float(BGX) + dot(vec2(PA, PB), pos));\n                                        "    // l:202
+"    int y_eff = int(float(BGY) + dot(vec2(PC, PD), pos));\n                                        "    // l:203
 "\n                                                                                                 "    // l:204
 "    // correct for fixed point math\n                                                              "    // l:205
 "    x_eff >>= 8;\n                                                                                 "    // l:206
@@ -283,7 +286,7 @@ const char* FragmentShaderSource =
 "    if ((BGCNT & 0x0040u) != 0u) {\n                                                               "    // l:221
 "        uint MOSAIC = readIOreg(0x4cu);\n                                                          "    // l:222
 "        x_eff -= x_eff % int((MOSAIC & 0xfu) + 1u);\n                                              "    // l:223
-"        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4) + 1u);\n                                      "    // l:224
+"        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4u) + 1u);\n                                     "    // l:224
 "    }\n                                                                                            "    // l:225
 "\n                                                                                                 "    // l:226
 "    uint TIDAddress = (SBB << 11u);  // base\n                                                     "    // l:227
@@ -298,7 +301,7 @@ const char* FragmentShaderSource =
 "        discard;\n                                                                                 "    // l:236
 "    }\n                                                                                            "    // l:237
 "\n                                                                                                 "    // l:238
-"    return vec4(readPALentry(VRAMEntry).rgb, 1);\n                                                 "    // l:239
+"    return vec4(readPALentry(VRAMEntry).rgb, 1.0);\n                                               "    // l:239
 "}\n                                                                                                "    // l:240
 "\n                                                                                                 "    // l:241
 "vec4 mode0(uint, uint);\n                                                                          "    // l:242
@@ -318,7 +321,7 @@ const char* FragmentShaderSource =
 "        CheckBottom(5u, window);\n                                                                 "    // l:256
 "\n                                                                                                 "    // l:257
 "        // backdrop, highest frag depth\n                                                          "    // l:258
-"        gl_FragDepth = 1;\n                                                                        "    // l:259
+"        gl_FragDepth = 1.0;\n                                                                      "    // l:259
 "        FragColor = ColorCorrect(vec4(readPALentry(0u).rgb, 1.0));\n                               "    // l:260
 "        FragColor = AlphaCorrect(FragColor, 5u, window);\n                                         "    // l:261
 "        return;\n                                                                                  "    // l:262
@@ -352,7 +355,7 @@ const char* FragmentShaderSource =
 "            outColor = mode4(x, y);\n                                                              "    // l:290
 "            break;\n                                                                               "    // l:291
 "        default:\n                                                                                 "    // l:292
-"            outColor = vec4(float(x) / float(240u), float(y) / float(160u), 1, 1);\n               "    // l:293
+"            outColor = vec4(float(x) / float(240u), float(y) / float(160u), 1.0, 1.0);\n           "    // l:293
 "            break;\n                                                                               "    // l:294
 "    }\n                                                                                            "    // l:295
 "\n                                                                                                 "    // l:296
@@ -363,845 +366,832 @@ const char* FragmentShaderSource =
 ;
 
 
-// FragmentHelperSource (from fragment_helpers.glsl, lines 1 to 162)
+// FragmentHelperSource (from fragment_helpers.glsl, lines 1 to 164)
 const char* FragmentHelperSource = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"/* GENERAL */\n                                                                                    "    // l:3
-"in vec2 OnScreenPos;\n                                                                             "    // l:4
-"\n                                                                                                 "    // l:5
-"uniform usampler2D PAL;\n                                                                          "    // l:6
-"uniform usampler2D VRAM;\n                                                                         "    // l:7
-"uniform usampler2D IO;\n                                                                           "    // l:8
-"uniform isampler2D OAM;\n                                                                          "    // l:9
-"uniform usampler2D Window;\n                                                                       "    // l:10
-"\n                                                                                                 "    // l:11
-"uniform bool Bottom;\n                                                                             "    // l:12
+"precision mediump float;\n                                                                         "    // l:1
+"precision mediump usampler2D;\n                                                                    "    // l:2
+"precision mediump isampler2D;\n                                                                    "    // l:3
+"\n                                                                                                 "    // l:4
+"/* GENERAL */\n                                                                                    "    // l:5
+"in vec2 OnScreenPos;\n                                                                             "    // l:6
+"\n                                                                                                 "    // l:7
+"uniform usampler2D PAL;\n                                                                          "    // l:8
+"uniform usampler2D VRAM;\n                                                                         "    // l:9
+"uniform usampler2D IO;\n                                                                           "    // l:10
+"uniform isampler2D OAM;\n                                                                          "    // l:11
+"uniform usampler2D Window;\n                                                                       "    // l:12
 "\n                                                                                                 "    // l:13
-"uniform uint PALBufferIndex[160u];\n                                                               "    // l:14
+"uniform bool Bottom;\n                                                                             "    // l:14
 "\n                                                                                                 "    // l:15
-"uint readIOreg(uint address);\n                                                                    "    // l:16
+"uniform uint PALBufferIndex[160u];\n                                                               "    // l:16
 "\n                                                                                                 "    // l:17
-"// algorithm from https://byuu.net/video/color-emulation/\n                                        "    // l:18
-"const float lcdGamma = 4.0;\n                                                                      "    // l:19
-"const float outGamma = 2.2;\n                                                                      "    // l:20
-"const mat3x3 CorrectionMatrix = mat3x3(\n                                                          "    // l:21
-"        255.0,  10.0,  50.0,\n                                                                     "    // l:22
-"         50.0, 230.0,  10.0,\n                                                                     "    // l:23
-"          0.0,  30.0, 220.0\n                                                                      "    // l:24
-") / 255.0;\n                                                                                       "    // l:25
-"\n                                                                                                 "    // l:26
-"vec4 ColorCorrect(vec4 color) {\n                                                                  "    // l:27
-"    vec3 lrgb = pow(color.rgb, vec3(lcdGamma));\n                                                  "    // l:28
-"    vec3 rgb = pow(CorrectionMatrix * lrgb, vec3(1.0 / outGamma)) * (255.0 / 280.0);\n             "    // l:29
-"    return vec4(rgb, color.a);\n                                                                   "    // l:30
+"uint readIOreg(uint address);\n                                                                    "    // l:18
+"\n                                                                                                 "    // l:19
+"// algorithm from https://byuu.net/video/color-emulation/\n                                        "    // l:20
+"const float lcdGamma = 4.0;\n                                                                      "    // l:21
+"const float outGamma = 2.2;\n                                                                      "    // l:22
+"const mat3x3 CorrectionMatrix = mat3x3(\n                                                          "    // l:23
+"        255.0,  10.0,  50.0,\n                                                                     "    // l:24
+"         50.0, 230.0,  10.0,\n                                                                     "    // l:25
+"          0.0,  30.0, 220.0\n                                                                      "    // l:26
+") / 255.0;\n                                                                                       "    // l:27
+"\n                                                                                                 "    // l:28
+"vec4 ColorCorrect(vec4 color) {\n                                                                  "    // l:29
+"    vec3 lrgb = pow(color.rgb, vec3(lcdGamma));\n                                                  "    // l:30
+"    vec3 rgb = pow(CorrectionMatrix * lrgb, vec3(1.0 / outGamma)) * (255.0 / 280.0);\n             "    // l:31
+"    return vec4(rgb, color.a);\n                                                                   "    // l:32
+"}\n                                                                                                "    // l:33
+"\n                                                                                                 "    // l:34
+"void CheckBottom(uint layer, uint window) {\n                                                      "    // l:35
+"    if (Bottom) {\n                                                                                "    // l:36
+"        uint BLDCNT = readIOreg(0x50u);\n                                                          "    // l:37
+"        if (((BLDCNT & 0x00c0u) != 0x0040u)) {\n                                                   "    // l:38
+"            // not interesting, not normal alpha blending\n                                        "    // l:39
+"            discard;\n                                                                             "    // l:40
+"        }\n                                                                                        "    // l:41
+"\n                                                                                                 "    // l:42
+"        if ((window & 0x20u) == 0u) {\n                                                            "    // l:43
+"            // blending disabled in window, don't render on bottom frame\n                         "    // l:44
+"            discard;\n                                                                             "    // l:45
+"        }\n                                                                                        "    // l:46
+"    }\n                                                                                            "    // l:47
+"}\n                                                                                                "    // l:48
+"\n                                                                                                 "    // l:49
+"vec4 AlphaCorrect(vec4 color, uint layer, uint window) {\n                                         "    // l:50
+"    // BG0-3, 4 for Obj, 5 for BD\n                                                                "    // l:51
+"    if ((window & 0x20u) == 0u) {\n                                                                "    // l:52
+"        // blending disabled in window\n                                                           "    // l:53
+"        return vec4(color.rgb, -1);\n                                                              "    // l:54
+"    }\n                                                                                            "    // l:55
+"\n                                                                                                 "    // l:56
+"    uint BLDCNT = readIOreg(0x50u);\n                                                              "    // l:57
+"    uint BLDY = clamp(readIOreg(0x54u) & 0x1fu, 0u, 16u);\n                                        "    // l:58
+"\n                                                                                                 "    // l:59
+"    switch (BLDCNT & 0x00c0u) {\n                                                                  "    // l:60
+"        case 0x0000u:\n                                                                            "    // l:61
+"            // blending disabled\n                                                                 "    // l:62
+"            return vec4(color.rgb, -1);\n                                                          "    // l:63
+"        case 0x0040u:\n                                                                            "    // l:64
+"            // normal blending, do this after (most complicated)\n                                 "    // l:65
+"            break;\n                                                                               "    // l:66
+"        case 0x0080u:\n                                                                            "    // l:67
+"        {\n                                                                                        "    // l:68
+"            // blend A with white\n                                                                "    // l:69
+"            if ((BLDCNT & (1u << layer)) != 0u) {\n                                                "    // l:70
+"                // layer is top layer\n                                                            "    // l:71
+"                return vec4(mix(color.rgb, vec3(1), float(BLDY) / 16.0), -1.0);\n                  "    // l:72
+"            }\n                                                                                    "    // l:73
+"            // bottom layer, not blended\n                                                         "    // l:74
+"            return vec4(color.rgb, -1);\n                                                          "    // l:75
+"        }\n                                                                                        "    // l:76
+"        case 0x00c0u:\n                                                                            "    // l:77
+"        {\n                                                                                        "    // l:78
+"            // blend A with black\n                                                                "    // l:79
+"            if ((BLDCNT & (1u << layer)) != 0u) {\n                                                "    // l:80
+"                // layer is top layer\n                                                            "    // l:81
+"                return vec4(mix(color.rgb, vec3(0), float(BLDY) / 16.0), -1.0);\n                  "    // l:82
+"            }\n                                                                                    "    // l:83
+"            // bottom layer, not blended\n                                                         "    // l:84
+"            return vec4(color.rgb, -1);\n                                                          "    // l:85
+"        }\n                                                                                        "    // l:86
+"    }\n                                                                                            "    // l:87
+"\n                                                                                                 "    // l:88
+"    // value was not normal blending / fade\n                                                      "    // l:89
+"    uint BLDALPHA = readIOreg(0x52u);\n                                                            "    // l:90
+"    uint BLD_EVA = clamp(BLDALPHA & 0x1fu, 0u, 16u);\n                                             "    // l:91
+"    uint BLD_EVB = clamp((BLDALPHA >> 8u) & 0x1fu, 0u, 16u);\n                                     "    // l:92
+"\n                                                                                                 "    // l:93
+"    if ((BLDCNT & (1u << layer)) != 0u) {\n                                                        "    // l:94
+"        // top layer\n                                                                             "    // l:95
+"        if (!Bottom) {\n                                                                           "    // l:96
+"            return vec4(color.rgb, float(BLD_EVA) / 16.0);\n                                       "    // l:97
+"        }\n                                                                                        "    // l:98
+"        else {\n                                                                                   "    // l:99
+"            discard;\n                                                                             "    // l:100
+"        }\n                                                                                        "    // l:101
+"    }\n                                                                                            "    // l:102
+"    // bottom layer\n                                                                              "    // l:103
+"    if ((BLDCNT & (0x100u << layer)) != 0u) {\n                                                    "    // l:104
+"        // set alpha value to -half of the actual value\n                                          "    // l:105
+"        // -1 means: final color\n                                                                 "    // l:106
+"        // negative: bottom\n                                                                      "    // l:107
+"        // positive: top\n                                                                         "    // l:108
+"        return vec4(color.rgb, -0.25 - (float(BLD_EVB) / 32.0));\n                                 "    // l:109
+"    }\n                                                                                            "    // l:110
+"\n                                                                                                 "    // l:111
+"    // neither\n                                                                                   "    // l:112
+"    return vec4(color.rgb, -1);\n                                                                  "    // l:113
+"}\n                                                                                                "    // l:114
+"\n                                                                                                 "    // l:115
+"uint readVRAM8(uint address) {\n                                                                   "    // l:116
+"    return texelFetch(\n                                                                           "    // l:117
+"        VRAM, ivec2(address & 0x7fu, address >> 7u), 0\n                                           "    // l:118
+"    ).x;\n                                                                                         "    // l:119
+"}\n                                                                                                "    // l:120
+"\n                                                                                                 "    // l:121
+"uint readVRAM16(uint address) {\n                                                                  "    // l:122
+"    address &= ~1u;\n                                                                              "    // l:123
+"    uint lsb = readVRAM8(address);\n                                                               "    // l:124
+"    return lsb | (readVRAM8(address + 1u) << 8u);\n                                                "    // l:125
+"}\n                                                                                                "    // l:126
+"\n                                                                                                 "    // l:127
+"uint readVRAM32(uint address) {\n                                                                  "    // l:128
+"    address &= ~3u;\n                                                                              "    // l:129
+"    uint lsh = readVRAM16(address);\n                                                              "    // l:130
+"    return lsh | (readVRAM16(address + 2u) << 16u);\n                                              "    // l:131
+"}\n                                                                                                "    // l:132
+"\n                                                                                                 "    // l:133
+"uint readIOreg(uint address) {\n                                                                   "    // l:134
+"    return texelFetch(\n                                                                           "    // l:135
+"        IO, ivec2(int(address >> 1u), int(OnScreenPos.y)), 0\n                                     "    // l:136
+"    ).x;\n                                                                                         "    // l:137
+"}\n                                                                                                "    // l:138
+"\n                                                                                                 "    // l:139
+"ivec4 readOAMentry(uint index) {\n                                                                 "    // l:140
+"    return texelFetch(\n                                                                           "    // l:141
+"        OAM, ivec2(int(index), 0), 0\n                                                             "    // l:142
+"    );\n                                                                                           "    // l:143
+"}\n                                                                                                "    // l:144
+"\n                                                                                                 "    // l:145
+"vec3 decodeBGR555(uint v) {\n                                                                      "    // l:146
+"    uint r =  v        & 31u;\n                                                                    "    // l:147
+"    uint g = (v >> 5u) & 31u;\n                                                                    "    // l:148
+"    uint b = (v >> 10u)& 31u;\n                                                                    "    // l:149
+"    return vec3(r, g, b) / 31.0;\n                                                                 "    // l:150
+"}\n                                                                                                "    // l:151
+"\n                                                                                                 "    // l:152
+"vec4 readPALentry(uint index) {\n                                                                  "    // l:153
+"    uint v = texelFetch(PAL, ivec2(int(index), int(PALBufferIndex[uint(OnScreenPos.y)])), 0).r;\n  "    // l:154
+"    return vec4(decodeBGR555(v), 1.0);\n                                                           "    // l:155
+"}\n                                                                                                "    // l:156
+"\n                                                                                                 "    // l:157
+"uint getWindow(uint x, uint y) {\n                                                                 "    // l:158
+"    return texelFetch(\n                                                                           "    // l:159
+"        Window, ivec2(x, int(160u) - int(y)), 0\n                                                  "    // l:160
+"    ).r;\n                                                                                         "    // l:161
+"}\n                                                                                                "    // l:162
+"\n                                                                                                 "    // l:163
+;
+
+
+// FragmentShaderMode0Source (from fragment_mode0.glsl, lines 2 to 34)
+const char* FragmentShaderMode0Source = 
+"uint readVRAM8(uint address);\n                                                                    "    // l:1
+"uint readVRAM16(uint address);\n                                                                   "    // l:2
+"uint readVRAM32(uint address);\n                                                                   "    // l:3
+"\n                                                                                                 "    // l:4
+"uint readIOreg(uint address);\n                                                                    "    // l:5
+"vec4 readPALentry(uint index);\n                                                                   "    // l:6
+"\n                                                                                                 "    // l:7
+"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:8
+"float getDepth(uint BGCNT);\n                                                                      "    // l:9
+"\n                                                                                                 "    // l:10
+"vec4 mode0(uint x, uint y) {\n                                                                     "    // l:11
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:12
+"\n                                                                                                 "    // l:13
+"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:14
+"\n                                                                                                 "    // l:15
+"    vec4 Color;\n                                                                                  "    // l:16
+"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:17
+"        discard;  // background disabled\n                                                         "    // l:18
+"    }\n                                                                                            "    // l:19
+"\n                                                                                                 "    // l:20
+"    Color = regularBGPixel(BGCNT, x, y);\n                                                         "    // l:21
+"\n                                                                                                 "    // l:22
+"    if (Color.w != 0.0) {\n                                                                        "    // l:23
+"        // priority\n                                                                              "    // l:24
+"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:25
+"        return Color;\n                                                                            "    // l:26
+"    }\n                                                                                            "    // l:27
+"    else {\n                                                                                       "    // l:28
+"        discard;\n                                                                                 "    // l:29
+"    }\n                                                                                            "    // l:30
 "}\n                                                                                                "    // l:31
 "\n                                                                                                 "    // l:32
-"void CheckBottom(uint layer, uint window) {\n                                                      "    // l:33
-"    if (Bottom) {\n                                                                                "    // l:34
-"        uint BLDCNT = readIOreg(0x50u);\n                                                          "    // l:35
-"        if (((BLDCNT & 0x00c0u) != 0x0040u)) {\n                                                   "    // l:36
-"            // not interesting, not normal alpha blending\n                                        "    // l:37
-"            discard;\n                                                                             "    // l:38
-"        }\n                                                                                        "    // l:39
-"\n                                                                                                 "    // l:40
-"        if ((window & 0x20u) == 0u) {\n                                                            "    // l:41
-"            // blending disabled in window, don't render on bottom frame\n                         "    // l:42
-"            discard;\n                                                                             "    // l:43
-"        }\n                                                                                        "    // l:44
-"    }\n                                                                                            "    // l:45
-"}\n                                                                                                "    // l:46
-"\n                                                                                                 "    // l:47
-"vec4 AlphaCorrect(vec4 color, uint layer, uint window) {\n                                         "    // l:48
-"    // BG0-3, 4 for Obj, 5 for BD\n                                                                "    // l:49
-"    if ((window & 0x20u) == 0u) {\n                                                                "    // l:50
-"        // blending disabled in window\n                                                           "    // l:51
-"        return vec4(color.rgb, -1);\n                                                              "    // l:52
-"    }\n                                                                                            "    // l:53
-"\n                                                                                                 "    // l:54
-"    uint BLDCNT = readIOreg(0x50u);\n                                                              "    // l:55
-"    uint BLDY = clamp(readIOreg(0x54u) & 0x1fu, 0u, 16u);\n                                        "    // l:56
-"\n                                                                                                 "    // l:57
-"    switch (BLDCNT & 0x00c0u) {\n                                                                  "    // l:58
-"        case 0x0000u:\n                                                                            "    // l:59
-"            // blending disabled\n                                                                 "    // l:60
-"            return vec4(color.rgb, -1);\n                                                          "    // l:61
-"        case 0x0040u:\n                                                                            "    // l:62
-"            // normal blending, do this after (most complicated)\n                                 "    // l:63
-"            break;\n                                                                               "    // l:64
-"        case 0x0080u:\n                                                                            "    // l:65
-"        {\n                                                                                        "    // l:66
-"            // blend A with white\n                                                                "    // l:67
-"            if ((BLDCNT & (1u << layer)) != 0u) {\n                                                "    // l:68
-"                // layer is top layer\n                                                            "    // l:69
-"                return vec4(mix(color.rgb, vec3(1), float(BLDY) / 16.0), -1.0);\n                  "    // l:70
-"            }\n                                                                                    "    // l:71
-"            // bottom layer, not blended\n                                                         "    // l:72
-"            return vec4(color.rgb, -1);\n                                                          "    // l:73
-"        }\n                                                                                        "    // l:74
-"        case 0x00c0u:\n                                                                            "    // l:75
-"        {\n                                                                                        "    // l:76
-"            // blend A with black\n                                                                "    // l:77
-"            if ((BLDCNT & (1u << layer)) != 0u) {\n                                                "    // l:78
-"                // layer is top layer\n                                                            "    // l:79
-"                return vec4(mix(color.rgb, vec3(0), float(BLDY) / 16.0), -1.0);\n                  "    // l:80
-"            }\n                                                                                    "    // l:81
-"            // bottom layer, not blended\n                                                         "    // l:82
-"            return vec4(color.rgb, -1);\n                                                          "    // l:83
-"        }\n                                                                                        "    // l:84
-"    }\n                                                                                            "    // l:85
-"\n                                                                                                 "    // l:86
-"    // value was not normal blending / fade\n                                                      "    // l:87
-"    uint BLDALPHA = readIOreg(0x52u);\n                                                            "    // l:88
-"    uint BLD_EVA = clamp(BLDALPHA & 0x1fu, 0u, 16u);\n                                             "    // l:89
-"    uint BLD_EVB = clamp((BLDALPHA >> 8u) & 0x1fu, 0u, 16u);\n                                     "    // l:90
-"\n                                                                                                 "    // l:91
-"    if ((BLDCNT & (1u << layer)) != 0u) {\n                                                        "    // l:92
-"        // top layer\n                                                                             "    // l:93
-"        if (!Bottom) {\n                                                                           "    // l:94
-"            return vec4(color.rgb, float(BLD_EVA) / 16.0);\n                                       "    // l:95
-"        }\n                                                                                        "    // l:96
-"        else {\n                                                                                   "    // l:97
-"            discard;\n                                                                             "    // l:98
-"        }\n                                                                                        "    // l:99
-"    }\n                                                                                            "    // l:100
-"    // bottom layer\n                                                                              "    // l:101
-"    if ((BLDCNT & (0x100u << layer)) != 0u) {\n                                                    "    // l:102
-"        // set alpha value to -half of the actual value\n                                          "    // l:103
-"        // -1 means: final color\n                                                                 "    // l:104
-"        // negative: bottom\n                                                                      "    // l:105
-"        // positive: top\n                                                                         "    // l:106
-"        return vec4(color.rgb, -0.25 - (float(BLD_EVB) / 32.0));\n                                 "    // l:107
-"    }\n                                                                                            "    // l:108
-"\n                                                                                                 "    // l:109
-"    // neither\n                                                                                   "    // l:110
-"    return vec4(color.rgb, -1);\n                                                                  "    // l:111
-"}\n                                                                                                "    // l:112
-"\n                                                                                                 "    // l:113
-"uint readVRAM8(uint address) {\n                                                                   "    // l:114
-"    return texelFetch(\n                                                                           "    // l:115
-"        VRAM, ivec2(address & 0x7fu, address >> 7u), 0\n                                           "    // l:116
-"    ).x;\n                                                                                         "    // l:117
-"}\n                                                                                                "    // l:118
-"\n                                                                                                 "    // l:119
-"uint readVRAM16(uint address) {\n                                                                  "    // l:120
-"    address &= ~1u;\n                                                                              "    // l:121
-"    uint lsb = readVRAM8(address);\n                                                               "    // l:122
-"    return lsb | (readVRAM8(address + 1u) << 8u);\n                                                "    // l:123
-"}\n                                                                                                "    // l:124
-"\n                                                                                                 "    // l:125
-"uint readVRAM32(uint address) {\n                                                                  "    // l:126
-"    address &= ~3u;\n                                                                              "    // l:127
-"    uint lsh = readVRAM16(address);\n                                                              "    // l:128
-"    return lsh | (readVRAM16(address + 2u) << 16u);\n                                              "    // l:129
-"}\n                                                                                                "    // l:130
-"\n                                                                                                 "    // l:131
-"uint readIOreg(uint address) {\n                                                                   "    // l:132
-"    return texelFetch(\n                                                                           "    // l:133
-"        IO, ivec2(address >> 1u, uint(OnScreenPos.y)), 0\n                                         "    // l:134
-"    ).x;\n                                                                                         "    // l:135
-"}\n                                                                                                "    // l:136
-"\n                                                                                                 "    // l:137
-"ivec4 readOAMentry(uint index) {\n                                                                 "    // l:138
-"    return texelFetch(\n                                                                           "    // l:139
-"        OAM, ivec2(int(index), 0), 0\n                                                             "    // l:140
-"    );\n                                                                                           "    // l:141
-"}\n                                                                                                "    // l:142
-"\n                                                                                                 "    // l:143
-"vec3 decodeBGR555(uint v) {\n                                                                      "    // l:144
-"    uint r =  v        & 31u;\n                                                                    "    // l:145
-"    uint g = (v >> 5u) & 31u;\n                                                                    "    // l:146
-"    uint b = (v >> 10u)& 31u;\n                                                                    "    // l:147
-"    return vec3(r, g, b) / 31.0;\n                                                                 "    // l:148
-"}\n                                                                                                "    // l:149
-"\n                                                                                                 "    // l:150
-"vec4 readPALentry(uint index) {\n                                                                  "    // l:151
-"    uint v = texelFetch(PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0).r;\n            "    // l:152
-"    return vec4(decodeBGR555(v), 1.0);\n                                                           "    // l:153
-"}\n                                                                                                "    // l:154
-"\n                                                                                                 "    // l:155
-"uint getWindow(uint x, uint y) {\n                                                                 "    // l:156
-"    return texelFetch(\n                                                                           "    // l:157
-"        Window, ivec2(x, 160u - y), 0\n                                                            "    // l:158
-"    ).r;\n                                                                                         "    // l:159
-"}\n                                                                                                "    // l:160
-"\n                                                                                                 "    // l:161
 ;
 
 
-// FragmentShaderMode0Source (from fragment_mode0.glsl, lines 1 to 37)
-const char* FragmentShaderMode0Source = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"uniform uint BG;\n                                                                                 "    // l:3
-"\n                                                                                                 "    // l:4
-"uint readVRAM8(uint address);\n                                                                    "    // l:5
-"uint readVRAM16(uint address);\n                                                                   "    // l:6
-"uint readVRAM32(uint address);\n                                                                   "    // l:7
-"\n                                                                                                 "    // l:8
-"uint readIOreg(uint address);\n                                                                    "    // l:9
-"vec4 readPALentry(uint index);\n                                                                   "    // l:10
-"\n                                                                                                 "    // l:11
-"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:12
-"float getDepth(uint BGCNT);\n                                                                      "    // l:13
-"\n                                                                                                 "    // l:14
-"vec4 mode0(uint x, uint y) {\n                                                                     "    // l:15
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:16
-"\n                                                                                                 "    // l:17
-"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:18
-"\n                                                                                                 "    // l:19
-"    vec4 Color;\n                                                                                  "    // l:20
-"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:21
-"        discard;  // background disabled\n                                                         "    // l:22
-"    }\n                                                                                            "    // l:23
-"\n                                                                                                 "    // l:24
-"    Color = regularBGPixel(BGCNT, x, y);\n                                                         "    // l:25
-"\n                                                                                                 "    // l:26
-"    if (Color.w != 0) {\n                                                                          "    // l:27
-"        // priority\n                                                                              "    // l:28
-"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:29
-"        return Color;\n                                                                            "    // l:30
-"    }\n                                                                                            "    // l:31
-"    else {\n                                                                                       "    // l:32
-"        discard;\n                                                                                 "    // l:33
-"    }\n                                                                                            "    // l:34
-"}\n                                                                                                "    // l:35
-"\n                                                                                                 "    // l:36
-;
-
-
-// FragmentShaderMode1Source (from fragment_mode1.glsl, lines 1 to 49)
+// FragmentShaderMode1Source (from fragment_mode1.glsl, lines 5 to 49)
 const char* FragmentShaderMode1Source = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"uniform uint BG;\n                                                                                 "    // l:3
+"uint readVRAM8(uint address);\n                                                                    "    // l:1
+"uint readVRAM16(uint address);\n                                                                   "    // l:2
+"uint readVRAM32(uint address);\n                                                                   "    // l:3
 "\n                                                                                                 "    // l:4
-"uint readVRAM8(uint address);\n                                                                    "    // l:5
-"uint readVRAM16(uint address);\n                                                                   "    // l:6
-"uint readVRAM32(uint address);\n                                                                   "    // l:7
-"\n                                                                                                 "    // l:8
-"uint readIOreg(uint address);\n                                                                    "    // l:9
-"vec4 readPALentry(uint index);\n                                                                   "    // l:10
+"uint readIOreg(uint address);\n                                                                    "    // l:5
+"vec4 readPALentry(uint index);\n                                                                   "    // l:6
+"\n                                                                                                 "    // l:7
+"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:8
+"vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);\n                                                 "    // l:9
+"float getDepth(uint BGCNT);\n                                                                      "    // l:10
 "\n                                                                                                 "    // l:11
-"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:12
-"vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);\n                                                 "    // l:13
-"float getDepth(uint BGCNT);\n                                                                      "    // l:14
-"\n                                                                                                 "    // l:15
-"vec4 mode1(uint x, uint y, vec2 screen_pos) {\n                                                    "    // l:16
-"    if (BG == 3u) {\n                                                                              "    // l:17
-"        // BG 3 is not drawn\n                                                                     "    // l:18
-"        discard;\n                                                                                 "    // l:19
-"    }\n                                                                                            "    // l:20
-"\n                                                                                                 "    // l:21
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:22
-"\n                                                                                                 "    // l:23
-"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:24
-"\n                                                                                                 "    // l:25
-"    vec4 Color;\n                                                                                  "    // l:26
-"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:27
-"        discard;  // background disabled\n                                                         "    // l:28
-"    }\n                                                                                            "    // l:29
-"\n                                                                                                 "    // l:30
-"\n                                                                                                 "    // l:31
-"    if (BG < 2u) {\n                                                                               "    // l:32
-"        Color = regularBGPixel(BGCNT, x, y);\n                                                     "    // l:33
-"    }\n                                                                                            "    // l:34
-"    else {\n                                                                                       "    // l:35
-"        Color = affineBGPixel(BGCNT, screen_pos);\n                                                "    // l:36
-"    }\n                                                                                            "    // l:37
-"\n                                                                                                 "    // l:38
-"    if (Color.w != 0) {\n                                                                          "    // l:39
-"        // background priority\n                                                                   "    // l:40
-"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:41
-"        return Color;\n                                                                            "    // l:42
-"    }\n                                                                                            "    // l:43
-"    else {\n                                                                                       "    // l:44
-"        discard;\n                                                                                 "    // l:45
-"    }\n                                                                                            "    // l:46
-"}\n                                                                                                "    // l:47
-"\n                                                                                                 "    // l:48
-;
-
-
-// FragmentShaderMode2Source (from fragment_mode2.glsl, lines 1 to 43)
-const char* FragmentShaderMode2Source = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"uniform uint BG;\n                                                                                 "    // l:3
-"\n                                                                                                 "    // l:4
-"uint readVRAM8(uint address);\n                                                                    "    // l:5
-"uint readVRAM16(uint address);\n                                                                   "    // l:6
-"uint readVRAM32(uint address);\n                                                                   "    // l:7
-"\n                                                                                                 "    // l:8
-"uint readIOreg(uint address);\n                                                                    "    // l:9
-"vec4 readPALentry(uint index);\n                                                                   "    // l:10
-"\n                                                                                                 "    // l:11
-"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:12
-"vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);\n                                                 "    // l:13
-"float getDepth(uint BGCNT);\n                                                                      "    // l:14
-"\n                                                                                                 "    // l:15
-"vec4 mode2(uint x, uint y, vec2 screen_pos) {\n                                                    "    // l:16
-"    if (BG < 2u) {\n                                                                               "    // l:17
-"        // only BG2 and 3 enabled\n                                                                "    // l:18
-"        discard;\n                                                                                 "    // l:19
-"    }\n                                                                                            "    // l:20
-"\n                                                                                                 "    // l:21
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:22
-"\n                                                                                                 "    // l:23
-"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:24
-"\n                                                                                                 "    // l:25
-"    vec4 Color;\n                                                                                  "    // l:26
-"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:27
-"        discard;  // background disabled\n                                                         "    // l:28
-"    }\n                                                                                            "    // l:29
-"\n                                                                                                 "    // l:30
-"    Color = affineBGPixel(BGCNT, screen_pos);\n                                                    "    // l:31
-"\n                                                                                                 "    // l:32
-"    if (Color.w != 0) {\n                                                                          "    // l:33
-"        // BG priority\n                                                                           "    // l:34
-"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:35
-"        return Color;\n                                                                            "    // l:36
-"    }\n                                                                                            "    // l:37
-"    else {\n                                                                                       "    // l:38
-"        discard;\n                                                                                 "    // l:39
-"    }\n                                                                                            "    // l:40
-"}\n                                                                                                "    // l:41
-"\n                                                                                                 "    // l:42
-;
-
-
-// FragmentShaderMode3Source (from fragment_mode3.glsl, lines 1 to 46)
-const char* FragmentShaderMode3Source = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"uniform uint BG;\n                                                                                 "    // l:3
-"\n                                                                                                 "    // l:4
-"uint readVRAM8(uint address);\n                                                                    "    // l:5
-"uint readVRAM16(uint address);\n                                                                   "    // l:6
-"uint readVRAM32(uint address);\n                                                                   "    // l:7
-"\n                                                                                                 "    // l:8
-"uint readIOreg(uint address);\n                                                                    "    // l:9
-"vec4 readPALentry(uint index);\n                                                                   "    // l:10
-"float getDepth(uint BGCNT);\n                                                                      "    // l:11
-"\n                                                                                                 "    // l:12
-"\n                                                                                                 "    // l:13
-"vec4 mode3(uint x, uint y) {\n                                                                     "    // l:14
-"    if (BG != 2u) {\n                                                                              "    // l:15
-"        // only BG2 is drawn\n                                                                     "    // l:16
-"        discard;\n                                                                                 "    // l:17
-"    }\n                                                                                            "    // l:18
+"vec4 mode1(uint x, uint y, vec2 screen_pos) {\n                                                    "    // l:12
+"    if (BG == 3u) {\n                                                                              "    // l:13
+"        // BG 3 is not drawn\n                                                                     "    // l:14
+"        discard;\n                                                                                 "    // l:15
+"    }\n                                                                                            "    // l:16
+"\n                                                                                                 "    // l:17
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:18
 "\n                                                                                                 "    // l:19
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:20
+"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:20
 "\n                                                                                                 "    // l:21
-"    if ((DISPCNT & 0x0400u) == 0u) {\n                                                             "    // l:22
-"        // background 2 is disabled\n                                                              "    // l:23
-"        discard;\n                                                                                 "    // l:24
+"    vec4 Color;\n                                                                                  "    // l:22
+"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:23
+"        discard;  // background disabled\n                                                         "    // l:24
 "    }\n                                                                                            "    // l:25
 "\n                                                                                                 "    // l:26
-"    uint VRAMAddr = (240u * y + x) << 1;  // 16bpp\n                                               "    // l:27
-"\n                                                                                                 "    // l:28
-"    uint PackedColor = readVRAM16(VRAMAddr);\n                                                     "    // l:29
-"\n                                                                                                 "    // l:30
-"    vec4 Color = vec4(0, 0, 0, 32);  // to be scaled later\n                                       "    // l:31
-"\n                                                                                                 "    // l:32
-"    // BGR format\n                                                                                "    // l:33
-"    Color.r = PackedColor & 0x1fu;\n                                                               "    // l:34
-"    PackedColor >>= 5u;\n                                                                          "    // l:35
-"    Color.g = PackedColor & 0x1fu;\n                                                               "    // l:36
-"    PackedColor >>= 5u;\n                                                                          "    // l:37
-"    Color.b = PackedColor & 0x1fu;\n                                                               "    // l:38
-"\n                                                                                                 "    // l:39
-"    uint BGCNT = readIOreg(0x0cu);\n                                                               "    // l:40
-"    gl_FragDepth = getDepth(BGCNT);\n                                                              "    // l:41
-"\n                                                                                                 "    // l:42
-"    return Color / 32.0;\n                                                                         "    // l:43
-"}\n                                                                                                "    // l:44
-"\n                                                                                                 "    // l:45
-;
-
-
-// FragmentShaderMode4Source (from fragment_mode4.glsl, lines 1 to 45)
-const char* FragmentShaderMode4Source = 
-"#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"uniform uint BG;\n                                                                                 "    // l:3
-"\n                                                                                                 "    // l:4
-"uint readVRAM8(uint address);\n                                                                    "    // l:5
-"uint readVRAM16(uint address);\n                                                                   "    // l:6
-"uint readVRAM32(uint address);\n                                                                   "    // l:7
-"\n                                                                                                 "    // l:8
-"uint readIOreg(uint address);\n                                                                    "    // l:9
-"vec4 readPALentry(uint index);\n                                                                   "    // l:10
-"float getDepth(uint BGCNT);\n                                                                      "    // l:11
-"\n                                                                                                 "    // l:12
-"vec4 mode4(uint x, uint y) {\n                                                                     "    // l:13
-"    if (BG != 2u) {\n                                                                              "    // l:14
-"        // only BG2 is drawn\n                                                                     "    // l:15
-"        discard;\n                                                                                 "    // l:16
-"    }\n                                                                                            "    // l:17
-"\n                                                                                                 "    // l:18
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:19
-"\n                                                                                                 "    // l:20
-"    if ((DISPCNT & 0x0400u) == 0u) {\n                                                             "    // l:21
-"        // background 2 is disabled\n                                                              "    // l:22
-"        discard;\n                                                                                 "    // l:23
-"    }\n                                                                                            "    // l:24
-"\n                                                                                                 "    // l:25
-"    // offset is specified in DISPCNT\n                                                            "    // l:26
-"    uint Offset = 0u;\n                                                                            "    // l:27
-"    if ((DISPCNT & 0x0010u) != 0u) {\n                                                             "    // l:28
-"        // offset\n                                                                                "    // l:29
-"        Offset = 0xa000u;\n                                                                        "    // l:30
-"    }\n                                                                                            "    // l:31
-"\n                                                                                                 "    // l:32
-"    uint VRAMAddr = (240u * y + x);\n                                                              "    // l:33
-"    VRAMAddr += Offset;\n                                                                          "    // l:34
-"    uint PaletteIndex = readVRAM8(VRAMAddr);\n                                                     "    // l:35
-"\n                                                                                                 "    // l:36
-"    vec4 Color = readPALentry(PaletteIndex);\n                                                     "    // l:37
-"    uint BGCNT = readIOreg(0x0cu);\n                                                               "    // l:38
-"    gl_FragDepth = getDepth(BGCNT);;\n                                                             "    // l:39
-"\n                                                                                                 "    // l:40
-"    // We already converted to BGR when buffering data\n                                           "    // l:41
-"    return vec4(Color.rgb, 1.0);\n                                                                 "    // l:42
+"\n                                                                                                 "    // l:27
+"    if (BG < 2u) {\n                                                                               "    // l:28
+"        Color = regularBGPixel(BGCNT, x, y);\n                                                     "    // l:29
+"    }\n                                                                                            "    // l:30
+"    else {\n                                                                                       "    // l:31
+"        Color = affineBGPixel(BGCNT, screen_pos);\n                                                "    // l:32
+"    }\n                                                                                            "    // l:33
+"\n                                                                                                 "    // l:34
+"    if (Color.w != 0.0) {\n                                                                        "    // l:35
+"        // background priority\n                                                                   "    // l:36
+"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:37
+"        return Color;\n                                                                            "    // l:38
+"    }\n                                                                                            "    // l:39
+"    else {\n                                                                                       "    // l:40
+"        discard;\n                                                                                 "    // l:41
+"    }\n                                                                                            "    // l:42
 "}\n                                                                                                "    // l:43
 "\n                                                                                                 "    // l:44
 ;
 
 
-// ObjectFragmentShaderSource (from object_fragment.glsl, lines 6 to 286)
-const char* ObjectFragmentShaderSource = 
-"#define attr0 x\n                                                                                  "    // l:1
-"#define attr1 y\n                                                                                  "    // l:2
-"#define attr2 z\n                                                                                  "    // l:3
-"#define attr3 w\n                                                                                  "    // l:4
-"\n                                                                                                 "    // l:5
-"in vec2 InObjPos;\n                                                                                "    // l:6
-"in vec2 OnScreenPos;\n                                                                             "    // l:7
-"flat in uvec4 OBJ;\n                                                                               "    // l:8
-"flat in uint ObjWidth;\n                                                                           "    // l:9
-"flat in uint ObjHeight;\n                                                                          "    // l:10
+// FragmentShaderMode2Source (from fragment_mode2.glsl, lines 3 to 41)
+const char* FragmentShaderMode2Source = 
+"uint readVRAM8(uint address);\n                                                                    "    // l:1
+"uint readVRAM16(uint address);\n                                                                   "    // l:2
+"uint readVRAM32(uint address);\n                                                                   "    // l:3
+"\n                                                                                                 "    // l:4
+"uint readIOreg(uint address);\n                                                                    "    // l:5
+"vec4 readPALentry(uint index);\n                                                                   "    // l:6
+"\n                                                                                                 "    // l:7
+"vec4 regularBGPixel(uint BGCNT, uint x, uint y);\n                                                 "    // l:8
+"vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);\n                                                 "    // l:9
+"float getDepth(uint BGCNT);\n                                                                      "    // l:10
 "\n                                                                                                 "    // l:11
-"uniform bool Affine;\n                                                                             "    // l:12
-"uniform uint YClipStart;\n                                                                         "    // l:13
-"uniform uint YClipEnd;\n                                                                           "    // l:14
-"\n                                                                                                 "    // l:15
-"#ifdef OBJ_WINDOW\n                                                                                "    // l:16
-"    out uvec4 FragColor;\n                                                                         "    // l:17
-"#else\n                                                                                            "    // l:18
-"    out vec4 FragColor;\n                                                                          "    // l:19
-"#endif\n                                                                                           "    // l:20
+"vec4 mode2(uint x, uint y, vec2 screen_pos) {\n                                                    "    // l:12
+"    if (BG < 2u) {\n                                                                               "    // l:13
+"        // only BG2 and 3 enabled\n                                                                "    // l:14
+"        discard;\n                                                                                 "    // l:15
+"    }\n                                                                                            "    // l:16
+"\n                                                                                                 "    // l:17
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:18
+"\n                                                                                                 "    // l:19
+"    uint BGCNT = readIOreg(0x08u + (BG << 1));\n                                                   "    // l:20
 "\n                                                                                                 "    // l:21
-"vec4 ColorCorrect(vec4 color);\n                                                                   "    // l:22
-"vec4 AlphaCorrect(vec4 color, uint layer, uint window);\n                                          "    // l:23
-"\n                                                                                                 "    // l:24
-"uint readVRAM8(uint address);\n                                                                    "    // l:25
-"uint readVRAM16(uint address);\n                                                                   "    // l:26
-"uint readVRAM32(uint address);\n                                                                   "    // l:27
+"    vec4 Color;\n                                                                                  "    // l:22
+"    if ((DISPCNT & (0x0100u << BG)) == 0u) {\n                                                     "    // l:23
+"        discard;  // background disabled\n                                                         "    // l:24
+"    }\n                                                                                            "    // l:25
+"\n                                                                                                 "    // l:26
+"    Color = affineBGPixel(BGCNT, screen_pos);\n                                                    "    // l:27
 "\n                                                                                                 "    // l:28
-"uint readIOreg(uint address);\n                                                                    "    // l:29
-"ivec4 readOAMentry(uint index);\n                                                                  "    // l:30
-"vec4 readPALentry(uint index);\n                                                                   "    // l:31
+"    if (Color.w != 0.0) {\n                                                                        "    // l:29
+"        // BG priority\n                                                                           "    // l:30
+"        gl_FragDepth = getDepth(BGCNT);\n                                                          "    // l:31
+"        return Color;\n                                                                            "    // l:32
+"    }\n                                                                                            "    // l:33
+"    else {\n                                                                                       "    // l:34
+"        discard;\n                                                                                 "    // l:35
+"    }\n                                                                                            "    // l:36
+"}\n                                                                                                "    // l:37
+"\n                                                                                                 "    // l:38
+;
+
+
+// FragmentShaderMode3Source (from fragment_mode3.glsl, lines 2 to 43)
+const char* FragmentShaderMode3Source = 
+"uint readVRAM8(uint address);\n                                                                    "    // l:1
+"uint readVRAM16(uint address);\n                                                                   "    // l:2
+"uint readVRAM32(uint address);\n                                                                   "    // l:3
+"\n                                                                                                 "    // l:4
+"uint readIOreg(uint address);\n                                                                    "    // l:5
+"vec4 readPALentry(uint index);\n                                                                   "    // l:6
+"float getDepth(uint BGCNT);\n                                                                      "    // l:7
+"\n                                                                                                 "    // l:8
+"\n                                                                                                 "    // l:9
+"vec4 mode3(uint x, uint y) {\n                                                                     "    // l:10
+"    if (BG != 2u) {\n                                                                              "    // l:11
+"        // only BG2 is drawn\n                                                                     "    // l:12
+"        discard;\n                                                                                 "    // l:13
+"    }\n                                                                                            "    // l:14
+"\n                                                                                                 "    // l:15
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:16
+"\n                                                                                                 "    // l:17
+"    if ((DISPCNT & 0x0400u) == 0u) {\n                                                             "    // l:18
+"        // background 2 is disabled\n                                                              "    // l:19
+"        discard;\n                                                                                 "    // l:20
+"    }\n                                                                                            "    // l:21
+"\n                                                                                                 "    // l:22
+"    uint VRAMAddr = (240u * y + x) << 1;  // 16bpp\n                                               "    // l:23
+"\n                                                                                                 "    // l:24
+"    uint PackedColor = readVRAM16(VRAMAddr);\n                                                     "    // l:25
+"\n                                                                                                 "    // l:26
+"    vec4 Color = vec4(0.0, 0.0, 0.0, 32.0);  // to be scaled later\n                               "    // l:27
+"\n                                                                                                 "    // l:28
+"    // BGR format\n                                                                                "    // l:29
+"    Color.r = float(PackedColor & 0x1fu);\n                                                        "    // l:30
+"    PackedColor >>= 5u;\n                                                                          "    // l:31
+"    Color.g = float(PackedColor & 0x1fu);\n                                                        "    // l:32
+"    PackedColor >>= 5u;\n                                                                          "    // l:33
+"    Color.b = float(PackedColor & 0x1fu);\n                                                        "    // l:34
+"\n                                                                                                 "    // l:35
+"    uint BGCNT = readIOreg(0x0cu);\n                                                               "    // l:36
+"    gl_FragDepth = getDepth(BGCNT);\n                                                              "    // l:37
+"\n                                                                                                 "    // l:38
+"    return Color / 32.0;\n                                                                         "    // l:39
+"}\n                                                                                                "    // l:40
+"\n                                                                                                 "    // l:41
+;
+
+
+// FragmentShaderMode4Source (from fragment_mode4.glsl, lines 2 to 42)
+const char* FragmentShaderMode4Source = 
+"uint readVRAM8(uint address);\n                                                                    "    // l:1
+"uint readVRAM16(uint address);\n                                                                   "    // l:2
+"uint readVRAM32(uint address);\n                                                                   "    // l:3
+"\n                                                                                                 "    // l:4
+"uint readIOreg(uint address);\n                                                                    "    // l:5
+"vec4 readPALentry(uint index);\n                                                                   "    // l:6
+"float getDepth(uint BGCNT);\n                                                                      "    // l:7
+"\n                                                                                                 "    // l:8
+"vec4 mode4(uint x, uint y) {\n                                                                     "    // l:9
+"    if (BG != 2u) {\n                                                                              "    // l:10
+"        // only BG2 is drawn\n                                                                     "    // l:11
+"        discard;\n                                                                                 "    // l:12
+"    }\n                                                                                            "    // l:13
+"\n                                                                                                 "    // l:14
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:15
+"\n                                                                                                 "    // l:16
+"    if ((DISPCNT & 0x0400u) == 0u) {\n                                                             "    // l:17
+"        // background 2 is disabled\n                                                              "    // l:18
+"        discard;\n                                                                                 "    // l:19
+"    }\n                                                                                            "    // l:20
+"\n                                                                                                 "    // l:21
+"    // offset is specified in DISPCNT\n                                                            "    // l:22
+"    uint Offset = 0u;\n                                                                            "    // l:23
+"    if ((DISPCNT & 0x0010u) != 0u) {\n                                                             "    // l:24
+"        // offset\n                                                                                "    // l:25
+"        Offset = 0xa000u;\n                                                                        "    // l:26
+"    }\n                                                                                            "    // l:27
+"\n                                                                                                 "    // l:28
+"    uint VRAMAddr = (240u * y + x);\n                                                              "    // l:29
+"    VRAMAddr += Offset;\n                                                                          "    // l:30
+"    uint PaletteIndex = readVRAM8(VRAMAddr);\n                                                     "    // l:31
 "\n                                                                                                 "    // l:32
-"uint getWindow(uint x, uint y);\n                                                                  "    // l:33
-"\n                                                                                                 "    // l:34
-"vec4 RegularObject(bool OAM2DMapping) {\n                                                          "    // l:35
-"    uint TID = OBJ.attr2 & 0x03ffu;\n                                                              "    // l:36
-"\n                                                                                                 "    // l:37
-"    uint dx = uint(InObjPos.x);\n                                                                  "    // l:38
-"    uint dy = uint(InObjPos.y);\n                                                                  "    // l:39
+"    vec4 Color = readPALentry(PaletteIndex);\n                                                     "    // l:33
+"    uint BGCNT = readIOreg(0x0cu);\n                                                               "    // l:34
+"    gl_FragDepth = getDepth(BGCNT);;\n                                                             "    // l:35
+"\n                                                                                                 "    // l:36
+"    // We already converted to BGR when buffering data\n                                           "    // l:37
+"    return vec4(Color.rgb, 1.0);\n                                                                 "    // l:38
+"}\n                                                                                                "    // l:39
 "\n                                                                                                 "    // l:40
-"    // mosaic effect\n                                                                             "    // l:41
-"    if ((OBJ.attr0 & 0x1000u) != 0u) {\n                                                           "    // l:42
-"        uint MOSAIC = readIOreg(0x4cu);\n                                                          "    // l:43
-"        dx -= dx % (((MOSAIC & 0xf00u) >> 8) + 1u);\n                                              "    // l:44
-"        dy -= dy % (((MOSAIC & 0xf000u) >> 12) + 1u);\n                                            "    // l:45
-"    }\n                                                                                            "    // l:46
-"\n                                                                                                 "    // l:47
-"    uint PixelAddress;\n                                                                           "    // l:48
-"    if ((OBJ.attr0 & 0x2000u) == 0x0000u) {\n                                                      "    // l:49
-"        uint PaletteBank = OBJ.attr2 >> 12;\n                                                      "    // l:50
-"        PixelAddress = TID << 5;\n                                                                 "    // l:51
-"\n                                                                                                 "    // l:52
-"        // get base address for line of tiles (vertically)\n                                       "    // l:53
-"        if (OAM2DMapping) {\n                                                                      "    // l:54
-"            PixelAddress += ObjWidth * (dy >> 3) << 2;\n                                           "    // l:55
-"        }\n                                                                                        "    // l:56
-"        else {\n                                                                                   "    // l:57
-"            PixelAddress += 32u * 0x20u * (dy >> 3);\n                                             "    // l:58
-"        }\n                                                                                        "    // l:59
-"        PixelAddress += (dy & 7u) << 2; // offset within tile for sliver\n                         "    // l:60
-"\n                                                                                                 "    // l:61
-"        // Sprites VRAM base address is 0x10000\n                                                  "    // l:62
-"        PixelAddress = (PixelAddress & 0x7fffu) | 0x10000u;\n                                      "    // l:63
+;
+
+
+// ObjectFragmentShaderSource (from object_fragment.glsl, lines 2 to 284)
+const char* ObjectFragmentShaderSource = 
+"precision mediump float;\n                                                                         "    // l:1
+"\n                                                                                                 "    // l:2
+"#define attr0 x\n                                                                                  "    // l:3
+"#define attr1 y\n                                                                                  "    // l:4
+"#define attr2 z\n                                                                                  "    // l:5
+"#define attr3 w\n                                                                                  "    // l:6
+"\n                                                                                                 "    // l:7
+"in vec2 InObjPos;\n                                                                                "    // l:8
+"\n                                                                                                 "    // l:9
+"flat in uvec4 OBJ;\n                                                                               "    // l:10
+"flat in uint ObjWidth;\n                                                                           "    // l:11
+"flat in uint ObjHeight;\n                                                                          "    // l:12
+"\n                                                                                                 "    // l:13
+"uniform bool Affine;\n                                                                             "    // l:14
+"uniform uint YClipStart;\n                                                                         "    // l:15
+"uniform uint YClipEnd;\n                                                                           "    // l:16
+"\n                                                                                                 "    // l:17
+"#ifdef OBJ_WINDOW\n                                                                                "    // l:18
+"    out uvec4 FragColor;\n                                                                         "    // l:19
+"#else\n                                                                                            "    // l:20
+"    out vec4 FragColor;\n                                                                          "    // l:21
+"#endif\n                                                                                           "    // l:22
+"\n                                                                                                 "    // l:23
+"vec4 ColorCorrect(vec4 color);\n                                                                   "    // l:24
+"vec4 AlphaCorrect(vec4 color, uint layer, uint window);\n                                          "    // l:25
+"\n                                                                                                 "    // l:26
+"uint readVRAM8(uint address);\n                                                                    "    // l:27
+"uint readVRAM16(uint address);\n                                                                   "    // l:28
+"uint readVRAM32(uint address);\n                                                                   "    // l:29
+"\n                                                                                                 "    // l:30
+"uint readIOreg(uint address);\n                                                                    "    // l:31
+"ivec4 readOAMentry(uint index);\n                                                                  "    // l:32
+"vec4 readPALentry(uint index);\n                                                                   "    // l:33
+"\n                                                                                                 "    // l:34
+"uint getWindow(uint x, uint y);\n                                                                  "    // l:35
+"\n                                                                                                 "    // l:36
+"vec4 RegularObject(bool OAM2DMapping) {\n                                                          "    // l:37
+"    uint TID = OBJ.attr2 & 0x03ffu;\n                                                              "    // l:38
+"\n                                                                                                 "    // l:39
+"    uint dx = uint(InObjPos.x);\n                                                                  "    // l:40
+"    uint dy = uint(InObjPos.y);\n                                                                  "    // l:41
+"\n                                                                                                 "    // l:42
+"    // mosaic effect\n                                                                             "    // l:43
+"    if ((OBJ.attr0 & 0x1000u) != 0u) {\n                                                           "    // l:44
+"        uint MOSAIC = readIOreg(0x4cu);\n                                                          "    // l:45
+"        dx -= dx % (((MOSAIC & 0xf00u) >> 8u) + 1u);\n                                             "    // l:46
+"        dy -= dy % (((MOSAIC & 0xf000u) >> 12u) + 1u);\n                                           "    // l:47
+"    }\n                                                                                            "    // l:48
+"\n                                                                                                 "    // l:49
+"    uint PixelAddress;\n                                                                           "    // l:50
+"    if ((OBJ.attr0 & 0x2000u) == 0x0000u) {\n                                                      "    // l:51
+"        uint PaletteBank = OBJ.attr2 >> 12u;\n                                                     "    // l:52
+"        PixelAddress = TID << 5u;\n                                                                "    // l:53
+"\n                                                                                                 "    // l:54
+"        // get base address for line of tiles (vertically)\n                                       "    // l:55
+"        if (OAM2DMapping) {\n                                                                      "    // l:56
+"            PixelAddress += ObjWidth * (dy >> 3u) << 2u;\n                                         "    // l:57
+"        }\n                                                                                        "    // l:58
+"        else {\n                                                                                   "    // l:59
+"            PixelAddress += 32u * 0x20u * (dy >> 3u);\n                                            "    // l:60
+"        }\n                                                                                        "    // l:61
+"        PixelAddress += (dy & 7u) << 2; // offset within tile for sliver\n                         "    // l:62
+"\n                                                                                                 "    // l:63
+"        // Sprites VRAM base address is 0x10000\n                                                  "    // l:64
+"        PixelAddress = (PixelAddress & 0x7fffu) | 0x10000u;\n                                      "    // l:65
+"\n                                                                                                 "    // l:66
+"        // horizontal offset:\n                                                                    "    // l:67
+"        PixelAddress += (dx >> 3u) << 5u;    // of tile\n                                          "    // l:68
+"        PixelAddress += ((dx & 7u) >> 1u);  // in tile\n                                           "    // l:69
+"\n                                                                                                 "    // l:70
+"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:71
+"        if ((dx & 1u) != 0u) {\n                                                                   "    // l:72
+"            // upper nibble\n                                                                      "    // l:73
+"            VRAMEntry >>= 4u;\n                                                                    "    // l:74
+"        }\n                                                                                        "    // l:75
+"        else {\n                                                                                   "    // l:76
+"            VRAMEntry &= 0x0fu;\n                                                                  "    // l:77
+"        }\n                                                                                        "    // l:78
+"\n                                                                                                 "    // l:79
+"        if (VRAMEntry != 0u) {\n                                                                   "    // l:80
+"            return vec4(readPALentry(0x100u + (PaletteBank << 4u) + VRAMEntry).rgb, 1.0);\n        "    // l:81
+"        }\n                                                                                        "    // l:82
+"        else {\n                                                                                   "    // l:83
+"            // transparent\n                                                                       "    // l:84
+"            discard;\n                                                                             "    // l:85
+"        }\n                                                                                        "    // l:86
+"    }\n                                                                                            "    // l:87
+"    else {\n                                                                                       "    // l:88
+"        // 8bpp\n                                                                                  "    // l:89
+"        PixelAddress = TID << 5;\n                                                                 "    // l:90
+"\n                                                                                                 "    // l:91
+"        if (OAM2DMapping) {\n                                                                      "    // l:92
+"            PixelAddress += ObjWidth * (dy & ~7u);\n                                               "    // l:93
+"        }\n                                                                                        "    // l:94
+"        else {\n                                                                                   "    // l:95
+"            PixelAddress += 32u * 0x20u * (dy >> 3u);\n                                            "    // l:96
+"        }\n                                                                                        "    // l:97
+"        PixelAddress += (dy & 7u) << 3;\n                                                          "    // l:98
+"\n                                                                                                 "    // l:99
+"        // Sprites VRAM base address is 0x10000\n                                                  "    // l:100
+"        PixelAddress = (PixelAddress & 0x7fffu) | 0x10000u;\n                                      "    // l:101
+"\n                                                                                                 "    // l:102
+"        // horizontal offset:\n                                                                    "    // l:103
+"        PixelAddress += (dx >> 3) << 6;\n                                                          "    // l:104
+"        PixelAddress += dx & 7u;\n                                                                 "    // l:105
+"\n                                                                                                 "    // l:106
+"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:107
+"\n                                                                                                 "    // l:108
+"        if (VRAMEntry != 0u) {\n                                                                   "    // l:109
+"            return vec4(readPALentry(0x100u + VRAMEntry).rgb, 1);\n                                "    // l:110
+"        }\n                                                                                        "    // l:111
+"        else {\n                                                                                   "    // l:112
+"            // transparent\n                                                                       "    // l:113
+"            discard;\n                                                                             "    // l:114
+"        }\n                                                                                        "    // l:115
+"    }\n                                                                                            "    // l:116
+"}\n                                                                                                "    // l:117
+"\n                                                                                                 "    // l:118
+"bool InsideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {\n                                         "    // l:119
+"    vec2 s = step(bottomLeft, v) - step(topRight, v);\n                                            "    // l:120
+"    return (s.x * s.y) != 0.0;\n                                                                   "    // l:121
+"}\n                                                                                                "    // l:122
+"\n                                                                                                 "    // l:123
+"vec4 AffineObject(bool OAM2DMapping) {\n                                                           "    // l:124
+"    uint TID = OBJ.attr2 & 0x03ffu;\n                                                              "    // l:125
+"\n                                                                                                 "    // l:126
+"    uint AffineIndex = (OBJ.attr1 & 0x3e00u) >> 9;\n                                               "    // l:127
+"    AffineIndex <<= 2;  // goes in groups of 4\n                                                   "    // l:128
+"\n                                                                                                 "    // l:129
+"    // scaling parameters\n                                                                        "    // l:130
+"    int PA = readOAMentry(AffineIndex).attr3;\n                                                    "    // l:131
+"    int PB = readOAMentry(AffineIndex + 1u).attr3;\n                                               "    // l:132
+"    int PC = readOAMentry(AffineIndex + 2u).attr3;\n                                               "    // l:133
+"    int PD = readOAMentry(AffineIndex + 3u).attr3;\n                                               "    // l:134
+"\n                                                                                                 "    // l:135
+"    // reference point\n                                                                           "    // l:136
+"    vec2 p0 = vec2(\n                                                                              "    // l:137
+"        float(ObjWidth  >> 1),\n                                                                   "    // l:138
+"        float(ObjHeight >> 1)\n                                                                    "    // l:139
+"    );\n                                                                                           "    // l:140
+"\n                                                                                                 "    // l:141
+"    vec2 p1;\n                                                                                     "    // l:142
+"    if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                                      "    // l:143
+"        // double rendering\n                                                                      "    // l:144
+"        p1 = 2.0 * p0;\n                                                                           "    // l:145
+"    }\n                                                                                            "    // l:146
+"    else {\n                                                                                       "    // l:147
+"        p1 = p0;\n                                                                                 "    // l:148
+"    }\n                                                                                            "    // l:149
+"\n                                                                                                 "    // l:150
+"    mat2x2 rotscale = mat2x2(\n                                                                    "    // l:151
+"        float(PA), float(PC),\n                                                                    "    // l:152
+"        float(PB), float(PD)\n                                                                     "    // l:153
+"    ) / 256.0;  // fixed point stuff\n                                                             "    // l:154
+"\n                                                                                                 "    // l:155
+"    ivec2 pos = ivec2(rotscale * (InObjPos - p1) + p0);\n                                          "    // l:156
+"    if (!InsideBox(vec2(pos), vec2(0.0, 0.0), vec2(ObjWidth, ObjHeight))) {\n                      "    // l:157
+"        // out of bounds\n                                                                         "    // l:158
+"        discard;\n                                                                                 "    // l:159
+"    }\n                                                                                            "    // l:160
+"\n                                                                                                 "    // l:161
+"    // mosaic effect\n                                                                             "    // l:162
+"    if ((OBJ.attr0 & 0x1000u) != 0u) {\n                                                           "    // l:163
+"        uint MOSAIC = readIOreg(0x4cu);\n                                                          "    // l:164
+"        pos.x -= pos.x % int(((MOSAIC & 0xf00u) >> 8u) + 1u);\n                                    "    // l:165
+"        pos.y -= pos.y % int(((MOSAIC & 0xf000u) >> 12u) + 1u);\n                                  "    // l:166
+"    }\n                                                                                            "    // l:167
+"\n                                                                                                 "    // l:168
+"    // get actual pixel\n                                                                          "    // l:169
+"    uint PixelAddress = 0x10000u;  // OBJ VRAM starts at 0x10000 in VRAM\n                         "    // l:170
+"    PixelAddress += TID << 5;\n                                                                    "    // l:171
+"        if (OAM2DMapping) {\n                                                                      "    // l:172
+"            PixelAddress += ObjWidth * uint(pos.y & ~7) >> 1u;\n                                   "    // l:173
+"        }\n                                                                                        "    // l:174
+"        else {\n                                                                                   "    // l:175
+"            PixelAddress += 32u * 0x20u * uint(pos.y >> 3);\n                                      "    // l:176
+"        }\n                                                                                        "    // l:177
+"\n                                                                                                 "    // l:178
+"    // the rest is very similar to regular sprites:\n                                              "    // l:179
+"    if ((OBJ.attr0 & 0x2000u) == 0x0000u) {\n                                                      "    // l:180
+"        uint PaletteBank = OBJ.attr2 >> 12u;\n                                                     "    // l:181
+"        PixelAddress += uint(pos.y & 7) << 2u; // offset within tile for sliver\n                  "    // l:182
+"\n                                                                                                 "    // l:183
+"        // horizontal offset:\n                                                                    "    // l:184
+"        PixelAddress += uint(pos.x >> 3) << 5u;    // of tile\n                                    "    // l:185
+"        PixelAddress += uint(pos.x & 7) >> 1u;  // in tile\n                                       "    // l:186
+"\n                                                                                                 "    // l:187
+"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:188
+"        if ((pos.x & 1) != 0) {\n                                                                  "    // l:189
+"            // upper nibble\n                                                                      "    // l:190
+"            VRAMEntry >>= 4u;\n                                                                    "    // l:191
+"        }\n                                                                                        "    // l:192
+"        else {\n                                                                                   "    // l:193
+"            VRAMEntry &= 0x0fu;\n                                                                  "    // l:194
+"        }\n                                                                                        "    // l:195
+"\n                                                                                                 "    // l:196
+"        if (VRAMEntry != 0u) {\n                                                                   "    // l:197
+"            return vec4(readPALentry(0x100u + (PaletteBank << 4u) + VRAMEntry).rgb, 1);\n          "    // l:198
+"        }\n                                                                                        "    // l:199
+"        else {\n                                                                                   "    // l:200
+"            // transparent\n                                                                       "    // l:201
+"            discard;\n                                                                             "    // l:202
+"        }\n                                                                                        "    // l:203
+"    }\n                                                                                            "    // l:204
+"    else {\n                                                                                       "    // l:205
+"        PixelAddress += (uint(pos.y) & 7u) << 3u; // offset within tile for sliver\n               "    // l:206
+"\n                                                                                                 "    // l:207
+"        // horizontal offset:\n                                                                    "    // l:208
+"        PixelAddress += uint(pos.x >> 3) << 6u;  // of tile\n                                      "    // l:209
+"        PixelAddress += uint(pos.x & 7);        // in tile\n                                       "    // l:210
+"\n                                                                                                 "    // l:211
+"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:212
+"\n                                                                                                 "    // l:213
+"        if (VRAMEntry != 0u) {\n                                                                   "    // l:214
+"            return vec4(readPALentry(0x100u + VRAMEntry).rgb, 1);\n                                "    // l:215
+"        }\n                                                                                        "    // l:216
+"        else {\n                                                                                   "    // l:217
+"            // transparent\n                                                                       "    // l:218
+"            discard;\n                                                                             "    // l:219
+"        }\n                                                                                        "    // l:220
+"    }\n                                                                                            "    // l:221
+"}\n                                                                                                "    // l:222
+"\n                                                                                                 "    // l:223
+"void main() {\n                                                                                    "    // l:224
+"    if (OnScreenPos.x < 0.0) {\n                                                                   "    // l:225
+"        discard;\n                                                                                 "    // l:226
+"    }\n                                                                                            "    // l:227
+"    if (OnScreenPos.x > float(240u)) {\n                                                           "    // l:228
+"        discard;\n                                                                                 "    // l:229
+"    }\n                                                                                            "    // l:230
+"\n                                                                                                 "    // l:231
+"    if (OnScreenPos.y < float(YClipStart)) {\n                                                     "    // l:232
+"        discard;\n                                                                                 "    // l:233
+"    }\n                                                                                            "    // l:234
+"    if (OnScreenPos.y > float(YClipEnd)) {\n                                                       "    // l:235
+"        discard;\n                                                                                 "    // l:236
+"    }\n                                                                                            "    // l:237
+"\n                                                                                                 "    // l:238
+"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:239
+"#ifndef OBJ_WINDOW\n                                                                               "    // l:240
+"    if ((DISPCNT & 0x1000u) == 0u) {\n                                                             "    // l:241
+"        // objects disabled in this scanline\n                                                     "    // l:242
+"        discard;\n                                                                                 "    // l:243
+"    }\n                                                                                            "    // l:244
+"    uint window = getWindow(uint(OnScreenPos.x), uint(OnScreenPos.y));\n                           "    // l:245
+"    if ((window & 0x10u) == 0u) {\n                                                                "    // l:246
+"        // disabled by window\n                                                                    "    // l:247
+"        discard;\n                                                                                 "    // l:248
+"    }\n                                                                                            "    // l:249
+"#else\n                                                                                            "    // l:250
+"    if ((DISPCNT & 0x8000u) == 0u) {\n                                                             "    // l:251
+"        // object window disabled in this scanline\n                                               "    // l:252
+"        discard;\n                                                                                 "    // l:253
+"    }\n                                                                                            "    // l:254
+"#endif\n                                                                                           "    // l:255
+"\n                                                                                                 "    // l:256
+"    bool OAM2DMapping = (DISPCNT & (0x0040u)) != 0u;\n                                             "    // l:257
+"\n                                                                                                 "    // l:258
+"    vec4 Color;\n                                                                                  "    // l:259
+"    if (!Affine) {\n                                                                               "    // l:260
+"        Color = RegularObject(OAM2DMapping);\n                                                     "    // l:261
+"    }\n                                                                                            "    // l:262
+"    else{\n                                                                                        "    // l:263
+"        Color = AffineObject(OAM2DMapping);\n                                                      "    // l:264
+"    }\n                                                                                            "    // l:265
+"\n                                                                                                 "    // l:266
+"#ifndef OBJ_WINDOW\n                                                                               "    // l:267
+"    FragColor = ColorCorrect(Color);\n                                                             "    // l:268
+"    if ((OBJ.attr0 & 0x0c00u) == 0x0400u) {\n                                                      "    // l:269
+"        FragColor = AlphaCorrect(FragColor, 4u, window);\n                                         "    // l:270
+"    }\n                                                                                            "    // l:271
+"    else {\n                                                                                       "    // l:272
+"        FragColor = vec4(FragColor.rgb, -1);\n                                                     "    // l:273
+"    }\n                                                                                            "    // l:274
+"#else\n                                                                                            "    // l:275
+"    // RegularObject/AffineObject will only return if it is nontransparent\n                       "    // l:276
+"    uint WINOBJ = (readIOreg(0x4au) >> 8u) & 0x3fu;\n                                              "    // l:277
+"\n                                                                                                 "    // l:278
+"    FragColor.r = WINOBJ;\n                                                                        "    // l:279
+"#endif\n                                                                                           "    // l:280
+"}\n                                                                                                "    // l:281
+"\n                                                                                                 "    // l:282
+;
+
+
+// ObjectVertexShaderSource (from object_vertex.glsl, lines 2 to 123)
+const char* ObjectVertexShaderSource = 
+"precision mediump float;\n                                                                         "    // l:1
+"\n                                                                                                 "    // l:2
+"#define attr0 x\n                                                                                  "    // l:3
+"#define attr1 y\n                                                                                  "    // l:4
+"#define attr2 z\n                                                                                  "    // l:5
+"#define attr3 w\n                                                                                  "    // l:6
+"\n                                                                                                 "    // l:7
+"uniform bool Affine;\n                                                                             "    // l:8
+"\n                                                                                                 "    // l:9
+"layout (location = 0) in uvec4 InOBJ;\n                                                            "    // l:10
+"\n                                                                                                 "    // l:11
+"out vec2 InObjPos;\n                                                                               "    // l:12
+"out vec2 OnScreenPos;\n                                                                            "    // l:13
+"flat out uvec4 OBJ;\n                                                                              "    // l:14
+"flat out uint ObjWidth;\n                                                                          "    // l:15
+"flat out uint ObjHeight;\n                                                                         "    // l:16
+"\n                                                                                                 "    // l:17
+"struct s_ObjSize {\n                                                                               "    // l:18
+"    uint width;\n                                                                                  "    // l:19
+"    uint height;\n                                                                                 "    // l:20
+"};\n                                                                                               "    // l:21
+"\n                                                                                                 "    // l:22
+"const s_ObjSize ObjSizeTable[12] = s_ObjSize[](\n                                                  "    // l:23
+"    s_ObjSize(8u, 8u),  s_ObjSize(16u, 16u), s_ObjSize(32u, 32u), s_ObjSize(64u, 64u),\n           "    // l:24
+"    s_ObjSize(16u, 8u), s_ObjSize(32u, 8u),  s_ObjSize(32u, 16u), s_ObjSize(64u, 32u),\n           "    // l:25
+"    s_ObjSize(8u, 16u), s_ObjSize(8u, 32u),  s_ObjSize(16u, 32u), s_ObjSize(32u, 62u)\n            "    // l:26
+");\n                                                                                               "    // l:27
+"\n                                                                                                 "    // l:28
+"struct s_Position {\n                                                                              "    // l:29
+"    bool right;\n                                                                                  "    // l:30
+"    bool low;\n                                                                                    "    // l:31
+"};\n                                                                                               "    // l:32
+"\n                                                                                                 "    // l:33
+"const s_Position PositionTable[4] = s_Position[](\n                                                "    // l:34
+"    s_Position(false, false), s_Position(true, false), s_Position(true, true), s_Position(false, true)\n"    // l:35
+");\n                                                                                               "    // l:36
+"\n                                                                                                 "    // l:37
+"void main() {\n                                                                                    "    // l:38
+"    OBJ = InOBJ;\n                                                                                 "    // l:39
+"    s_Position Position = PositionTable[gl_VertexID & 3];\n                                        "    // l:40
+"\n                                                                                                 "    // l:41
+"    uint Shape = OBJ.attr0 >> 14;\n                                                                "    // l:42
+"    uint Size  = OBJ.attr1 >> 14;\n                                                                "    // l:43
+"\n                                                                                                 "    // l:44
+"    s_ObjSize ObjSize = ObjSizeTable[(Shape * 4u) + Size];\n                                       "    // l:45
+"    ObjWidth = ObjSize.width;\n                                                                    "    // l:46
+"    ObjHeight = ObjSize.height;\n                                                                  "    // l:47
+"\n                                                                                                 "    // l:48
+"    ivec2 ScreenPos = ivec2(OBJ.attr1 & 0x1ffu, OBJ.attr0 & 0xffu);\n                              "    // l:49
+"\n                                                                                                 "    // l:50
+"    // correct position for screen wrapping\n                                                      "    // l:51
+"    if (ScreenPos.x > int(240u)) {\n                                                               "    // l:52
+"        ScreenPos.x -= 0x200;\n                                                                    "    // l:53
+"    }\n                                                                                            "    // l:54
+"\n                                                                                                 "    // l:55
+"    if (ScreenPos.y > int(160u)) {\n                                                               "    // l:56
+"        ScreenPos.y -= 0x100;\n                                                                    "    // l:57
+"    }\n                                                                                            "    // l:58
+"\n                                                                                                 "    // l:59
+"    InObjPos = vec2(0.0, 0.0);\n                                                                   "    // l:60
+"    if (Position.right) {\n                                                                        "    // l:61
+"        InObjPos.x  += float(ObjWidth);\n                                                          "    // l:62
+"        ScreenPos.x += int(ObjWidth);\n                                                            "    // l:63
 "\n                                                                                                 "    // l:64
-"        // horizontal offset:\n                                                                    "    // l:65
-"        PixelAddress += (dx >> 3) << 5;    // of tile\n                                            "    // l:66
-"        PixelAddress += ((dx & 7u) >> 1);  // in tile\n                                            "    // l:67
-"\n                                                                                                 "    // l:68
-"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:69
-"        if ((dx & 1u) != 0u) {\n                                                                   "    // l:70
-"            // upper nibble\n                                                                      "    // l:71
-"            VRAMEntry >>= 4;\n                                                                     "    // l:72
-"        }\n                                                                                        "    // l:73
-"        else {\n                                                                                   "    // l:74
-"            VRAMEntry &= 0x0fu;\n                                                                  "    // l:75
-"        }\n                                                                                        "    // l:76
+"        if (Affine) {\n                                                                            "    // l:65
+"            if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                              "    // l:66
+"                // double rendering\n                                                              "    // l:67
+"                InObjPos.x  += float(ObjWidth);\n                                                  "    // l:68
+"                ScreenPos.x += int(ObjWidth);\n                                                    "    // l:69
+"            }\n                                                                                    "    // l:70
+"        }\n                                                                                        "    // l:71
+"    }\n                                                                                            "    // l:72
+"\n                                                                                                 "    // l:73
+"    if (Position.low) {\n                                                                          "    // l:74
+"        InObjPos.y  += float(ObjHeight);\n                                                         "    // l:75
+"        ScreenPos.y += int(ObjHeight);\n                                                           "    // l:76
 "\n                                                                                                 "    // l:77
-"        if (VRAMEntry != 0u) {\n                                                                   "    // l:78
-"            return vec4(readPALentry(0x100u + (PaletteBank << 4) + VRAMEntry).rgb, 1);\n           "    // l:79
-"        }\n                                                                                        "    // l:80
-"        else {\n                                                                                   "    // l:81
-"            // transparent\n                                                                       "    // l:82
-"            discard;\n                                                                             "    // l:83
+"        if (Affine) {\n                                                                            "    // l:78
+"            if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                              "    // l:79
+"                // double rendering\n                                                              "    // l:80
+"                InObjPos.y  += float(ObjHeight);\n                                                 "    // l:81
+"                ScreenPos.y += int(ObjHeight);\n                                                   "    // l:82
+"            }\n                                                                                    "    // l:83
 "        }\n                                                                                        "    // l:84
 "    }\n                                                                                            "    // l:85
-"    else {\n                                                                                       "    // l:86
-"        // 8bpp\n                                                                                  "    // l:87
-"        PixelAddress = TID << 5;\n                                                                 "    // l:88
-"\n                                                                                                 "    // l:89
-"        if (OAM2DMapping) {\n                                                                      "    // l:90
-"            PixelAddress += ObjWidth * (dy & ~7u);\n                                               "    // l:91
+"\n                                                                                                 "    // l:86
+"    // flipping only applies to regular sprites\n                                                  "    // l:87
+"    if (!Affine) {\n                                                                               "    // l:88
+"        if ((OBJ.attr1 & 0x2000u) != 0u) {\n                                                       "    // l:89
+"            // VFlip\n                                                                             "    // l:90
+"            InObjPos.y = float(ObjHeight) - InObjPos.y;\n                                          "    // l:91
 "        }\n                                                                                        "    // l:92
-"        else {\n                                                                                   "    // l:93
-"            PixelAddress += 32u * 0x20u * (dy >> 3);\n                                             "    // l:94
-"        }\n                                                                                        "    // l:95
-"        PixelAddress += (dy & 7u) << 3;\n                                                          "    // l:96
-"\n                                                                                                 "    // l:97
-"        // Sprites VRAM base address is 0x10000\n                                                  "    // l:98
-"        PixelAddress = (PixelAddress & 0x7fffu) | 0x10000u;\n                                      "    // l:99
-"\n                                                                                                 "    // l:100
-"        // horizontal offset:\n                                                                    "    // l:101
-"        PixelAddress += (dx >> 3) << 6;\n                                                          "    // l:102
-"        PixelAddress += dx & 7u;\n                                                                 "    // l:103
-"\n                                                                                                 "    // l:104
-"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:105
-"\n                                                                                                 "    // l:106
-"        if (VRAMEntry != 0u) {\n                                                                   "    // l:107
-"            return vec4(readPALentry(0x100u + VRAMEntry).rgb, 1);\n                                "    // l:108
-"        }\n                                                                                        "    // l:109
-"        else {\n                                                                                   "    // l:110
-"            // transparent\n                                                                       "    // l:111
-"            discard;\n                                                                             "    // l:112
-"        }\n                                                                                        "    // l:113
-"    }\n                                                                                            "    // l:114
-"}\n                                                                                                "    // l:115
-"\n                                                                                                 "    // l:116
-"bool InsideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {\n                                         "    // l:117
-"    vec2 s = step(bottomLeft, v) - step(topRight, v);\n                                            "    // l:118
-"    return (s.x * s.y) != 0.0;\n                                                                   "    // l:119
+"\n                                                                                                 "    // l:93
+"        if ((OBJ.attr1 & 0x1000u) != 0u) {\n                                                       "    // l:94
+"            // HFlip\n                                                                             "    // l:95
+"            InObjPos.x = float(ObjWidth) - InObjPos.x;\n                                           "    // l:96
+"        }\n                                                                                        "    // l:97
+"    }\n                                                                                            "    // l:98
+"\n                                                                                                 "    // l:99
+"    OnScreenPos = vec2(ScreenPos);\n                                                               "    // l:100
+"\n                                                                                                 "    // l:101
+"#ifndef OBJ_WINDOW\n                                                                               "    // l:102
+"    // depth is the same everywhere in the object anyway\n                                         "    // l:103
+"    uint Priority = (OBJ.attr2 & 0x0c00u) >> 10;\n                                                 "    // l:104
+"\n                                                                                                 "    // l:105
+"    gl_Position = vec4(\n                                                                          "    // l:106
+"        -1.0 + 2.0 * OnScreenPos.x / float(240u),\n                                                "    // l:107
+"        1.0 - 2.0 * OnScreenPos.y / float(160u),\n                                                 "    // l:108
+"        -1.0 + float(Priority) / 2.0,  // /2.0 because openGL clips between -1 and 1 (-1 is in front)\n"    // l:109
+"        1.0\n                                                                                      "    // l:110
+"    );\n                                                                                           "    // l:111
+"#else\n                                                                                            "    // l:112
+"    gl_Position = vec4(\n                                                                          "    // l:113
+"        -1.0 + 2.0 * OnScreenPos.x / float(240u),\n                                                "    // l:114
+"        1.0 - 2.0 * OnScreenPos.y / float(160u),\n                                                 "    // l:115
+"        0.5,  // between WIN1 and WINOUT\n                                                         "    // l:116
+"        1.0\n                                                                                      "    // l:117
+"    );\n                                                                                           "    // l:118
+"#endif\n                                                                                           "    // l:119
 "}\n                                                                                                "    // l:120
 "\n                                                                                                 "    // l:121
-"vec4 AffineObject(bool OAM2DMapping) {\n                                                           "    // l:122
-"    uint TID = OBJ.attr2 & 0x03ffu;\n                                                              "    // l:123
-"\n                                                                                                 "    // l:124
-"    uint AffineIndex = (OBJ.attr1 & 0x3e00u) >> 9;\n                                               "    // l:125
-"    AffineIndex <<= 2;  // goes in groups of 4\n                                                   "    // l:126
-"\n                                                                                                 "    // l:127
-"    // scaling parameters\n                                                                        "    // l:128
-"    int PA = readOAMentry(AffineIndex).attr3;\n                                                    "    // l:129
-"    int PB = readOAMentry(AffineIndex + 1u).attr3;\n                                               "    // l:130
-"    int PC = readOAMentry(AffineIndex + 2u).attr3;\n                                               "    // l:131
-"    int PD = readOAMentry(AffineIndex + 3u).attr3;\n                                               "    // l:132
-"\n                                                                                                 "    // l:133
-"    // reference point\n                                                                           "    // l:134
-"    vec2 p0 = vec2(\n                                                                              "    // l:135
-"        float(ObjWidth  >> 1),\n                                                                   "    // l:136
-"        float(ObjHeight >> 1)\n                                                                    "    // l:137
-"    );\n                                                                                           "    // l:138
-"\n                                                                                                 "    // l:139
-"    vec2 p1;\n                                                                                     "    // l:140
-"    if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                                      "    // l:141
-"        // double rendering\n                                                                      "    // l:142
-"        p1 = 2 * p0;\n                                                                             "    // l:143
-"    }\n                                                                                            "    // l:144
-"    else {\n                                                                                       "    // l:145
-"        p1 = p0;\n                                                                                 "    // l:146
-"    }\n                                                                                            "    // l:147
-"\n                                                                                                 "    // l:148
-"    mat2x2 rotscale = mat2x2(\n                                                                    "    // l:149
-"        float(PA), float(PC),\n                                                                    "    // l:150
-"        float(PB), float(PD)\n                                                                     "    // l:151
-"    ) / 256.0;  // fixed point stuff\n                                                             "    // l:152
-"\n                                                                                                 "    // l:153
-"    ivec2 pos = ivec2(rotscale * (InObjPos - p1) + p0);\n                                          "    // l:154
-"    if (!InsideBox(pos, vec2(0, 0), vec2(ObjWidth, ObjHeight))) {\n                                "    // l:155
-"        // out of bounds\n                                                                         "    // l:156
-"        discard;\n                                                                                 "    // l:157
-"    }\n                                                                                            "    // l:158
-"\n                                                                                                 "    // l:159
-"    // mosaic effect\n                                                                             "    // l:160
-"    if ((OBJ.attr0 & 0x1000u) != 0u) {\n                                                           "    // l:161
-"        uint MOSAIC = readIOreg(0x4cu);\n                                                          "    // l:162
-"        pos.x -= pos.x % int(((MOSAIC & 0xf00u) >> 8) + 1u);\n                                     "    // l:163
-"        pos.y -= pos.y % int(((MOSAIC & 0xf000u) >> 12) + 1u);\n                                   "    // l:164
-"    }\n                                                                                            "    // l:165
-"\n                                                                                                 "    // l:166
-"    // get actual pixel\n                                                                          "    // l:167
-"    uint PixelAddress = 0x10000u;  // OBJ VRAM starts at 0x10000 in VRAM\n                         "    // l:168
-"    PixelAddress += TID << 5;\n                                                                    "    // l:169
-"    if (OAM2DMapping) {\n                                                                          "    // l:170
-"        PixelAddress += ObjWidth * uint(pos.y & ~7) >> 1;\n                                        "    // l:171
-"    }\n                                                                                            "    // l:172
-"    else {\n                                                                                       "    // l:173
-"        PixelAddress += 32u * 0x20u * uint(pos.y >> 3);\n                                          "    // l:174
-"    }\n                                                                                            "    // l:175
-"\n                                                                                                 "    // l:176
-"    // the rest is very similar to regular sprites:\n                                              "    // l:177
-"    if ((OBJ.attr0 & 0x2000u) == 0x0000u) {\n                                                      "    // l:178
-"        uint PaletteBank = OBJ.attr2 >> 12;\n                                                      "    // l:179
-"        PixelAddress += uint(pos.y & 7) << 2; // offset within tile for sliver\n                   "    // l:180
-"\n                                                                                                 "    // l:181
-"        // horizontal offset:\n                                                                    "    // l:182
-"        PixelAddress += uint(pos.x >> 3) << 5;    // of tile\n                                     "    // l:183
-"        PixelAddress += uint(pos.x & 7) >> 1;  // in tile\n                                        "    // l:184
-"\n                                                                                                 "    // l:185
-"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:186
-"        if ((pos.x & 1) != 0) {\n                                                                  "    // l:187
-"            // upper nibble\n                                                                      "    // l:188
-"            VRAMEntry >>= 4;\n                                                                     "    // l:189
-"        }\n                                                                                        "    // l:190
-"        else {\n                                                                                   "    // l:191
-"            VRAMEntry &= 0x0fu;\n                                                                  "    // l:192
-"        }\n                                                                                        "    // l:193
-"\n                                                                                                 "    // l:194
-"        if (VRAMEntry != 0u) {\n                                                                   "    // l:195
-"            return vec4(readPALentry(0x100u + (PaletteBank << 4) + VRAMEntry).rgb, 1);\n           "    // l:196
-"        }\n                                                                                        "    // l:197
-"        else {\n                                                                                   "    // l:198
-"            // transparent\n                                                                       "    // l:199
-"            discard;\n                                                                             "    // l:200
-"        }\n                                                                                        "    // l:201
-"    }\n                                                                                            "    // l:202
-"    else {\n                                                                                       "    // l:203
-"        PixelAddress += (uint(pos.y) & 7u) << 3; // offset within tile for sliver\n                "    // l:204
-"\n                                                                                                 "    // l:205
-"        // horizontal offset:\n                                                                    "    // l:206
-"        PixelAddress += uint(pos.x >> 3) << 6;  // of tile\n                                       "    // l:207
-"        PixelAddress += uint(pos.x & 7);        // in tile\n                                       "    // l:208
-"\n                                                                                                 "    // l:209
-"        uint VRAMEntry = readVRAM8(PixelAddress);\n                                                "    // l:210
-"\n                                                                                                 "    // l:211
-"        if (VRAMEntry != 0u) {\n                                                                   "    // l:212
-"            return vec4(readPALentry(0x100u + VRAMEntry).rgb, 1);\n                                "    // l:213
-"        }\n                                                                                        "    // l:214
-"        else {\n                                                                                   "    // l:215
-"            // transparent\n                                                                       "    // l:216
-"            discard;\n                                                                             "    // l:217
-"        }\n                                                                                        "    // l:218
-"    }\n                                                                                            "    // l:219
-"}\n                                                                                                "    // l:220
-"\n                                                                                                 "    // l:221
-"void main() {\n                                                                                    "    // l:222
-"    if (OnScreenPos.x < 0) {\n                                                                     "    // l:223
-"        discard;\n                                                                                 "    // l:224
-"    }\n                                                                                            "    // l:225
-"    if (OnScreenPos.x > 240u) {\n                                                                  "    // l:226
-"        discard;\n                                                                                 "    // l:227
-"    }\n                                                                                            "    // l:228
-"\n                                                                                                 "    // l:229
-"    if (OnScreenPos.y < float(YClipStart)) {\n                                                     "    // l:230
-"        discard;\n                                                                                 "    // l:231
-"    }\n                                                                                            "    // l:232
-"    if (OnScreenPos.y > float(YClipEnd)) {\n                                                       "    // l:233
-"        discard;\n                                                                                 "    // l:234
-"    }\n                                                                                            "    // l:235
-"\n                                                                                                 "    // l:236
-"    uint DISPCNT = readIOreg(0x00u);\n                                                             "    // l:237
-"#ifndef OBJ_WINDOW\n                                                                               "    // l:238
-"    if ((DISPCNT & 0x1000u) == 0u) {\n                                                             "    // l:239
-"        // objects disabled in this scanline\n                                                     "    // l:240
-"        discard;\n                                                                                 "    // l:241
-"    }\n                                                                                            "    // l:242
-"    uint window = getWindow(uint(OnScreenPos.x), uint(OnScreenPos.y));\n                           "    // l:243
-"    if ((window & 0x10u) == 0u) {\n                                                                "    // l:244
-"        // disabled by window\n                                                                    "    // l:245
-"        discard;\n                                                                                 "    // l:246
-"    }\n                                                                                            "    // l:247
-"#else\n                                                                                            "    // l:248
-"    if ((DISPCNT & 0x8000u) == 0u) {\n                                                             "    // l:249
-"        // object window disabled in this scanline\n                                               "    // l:250
-"        discard;\n                                                                                 "    // l:251
-"    }\n                                                                                            "    // l:252
-"#endif\n                                                                                           "    // l:253
-"\n                                                                                                 "    // l:254
-"    bool OAM2DMapping = (DISPCNT & (0x0040u)) != 0u;\n                                             "    // l:255
-"\n                                                                                                 "    // l:256
-"    vec4 Color;\n                                                                                  "    // l:257
-"    if (!Affine) {\n                                                                               "    // l:258
-"        Color = RegularObject(OAM2DMapping);\n                                                     "    // l:259
-"    }\n                                                                                            "    // l:260
-"    else{\n                                                                                        "    // l:261
-"        Color = AffineObject(OAM2DMapping);\n                                                      "    // l:262
-"    }\n                                                                                            "    // l:263
-"\n                                                                                                 "    // l:264
-"#ifndef OBJ_WINDOW\n                                                                               "    // l:265
-"    FragColor = ColorCorrect(Color);\n                                                             "    // l:266
-"    if ((OBJ.attr0 & 0x0c00u) == 0x0400u) {\n                                                      "    // l:267
-"        FragColor = AlphaCorrect(FragColor, 4u, window);\n                                         "    // l:268
-"    }\n                                                                                            "    // l:269
-"    else {\n                                                                                       "    // l:270
-"        FragColor = vec4(FragColor.rgb, -1);\n                                                     "    // l:271
-"    }\n                                                                                            "    // l:272
-"#else\n                                                                                            "    // l:273
-"    // RegularObject/AffineObject will only return if it is nontransparent\n                       "    // l:274
-"    uint WINOBJ = (readIOreg(0x4au) >> 8) & 0x3fu;\n                                               "    // l:275
-"\n                                                                                                 "    // l:276
-"    FragColor.r = WINOBJ;\n                                                                        "    // l:277
-"#endif\n                                                                                           "    // l:278
-"}\n                                                                                                "    // l:279
-"\n                                                                                                 "    // l:280
 ;
 
 
-// ObjectVertexShaderSource (from object_vertex.glsl, lines 5 to 124)
-const char* ObjectVertexShaderSource = 
-"#define attr0 x\n                                                                                  "    // l:1
-"#define attr1 y\n                                                                                  "    // l:2
-"#define attr2 z\n                                                                                  "    // l:3
-"#define attr3 w\n                                                                                  "    // l:4
-"\n                                                                                                 "    // l:5
-"uniform bool Affine;\n                                                                             "    // l:6
-"\n                                                                                                 "    // l:7
-"layout (location = 0) in uvec4 InOBJ;\n                                                            "    // l:8
-"\n                                                                                                 "    // l:9
-"out vec2 InObjPos;\n                                                                               "    // l:10
-"out vec2 OnScreenPos;\n                                                                            "    // l:11
-"flat out uvec4 OBJ;\n                                                                              "    // l:12
-"flat out uint ObjWidth;\n                                                                          "    // l:13
-"flat out uint ObjHeight;\n                                                                         "    // l:14
-"\n                                                                                                 "    // l:15
-"struct s_ObjSize {\n                                                                               "    // l:16
-"    uint width;\n                                                                                  "    // l:17
-"    uint height;\n                                                                                 "    // l:18
-"};\n                                                                                               "    // l:19
-"\n                                                                                                 "    // l:20
-"const s_ObjSize ObjSizeTable[12] = s_ObjSize[](\n                                                  "    // l:21
-"    s_ObjSize(8u, 8u),  s_ObjSize(16u, 16u), s_ObjSize(32u, 32u), s_ObjSize(64u, 64u),\n           "    // l:22
-"    s_ObjSize(16u, 8u), s_ObjSize(32u, 8u),  s_ObjSize(32u, 16u), s_ObjSize(64u, 32u),\n           "    // l:23
-"    s_ObjSize(8u, 16u), s_ObjSize(8u, 32u),  s_ObjSize(16u, 32u), s_ObjSize(32u, 62u)\n            "    // l:24
-");\n                                                                                               "    // l:25
-"\n                                                                                                 "    // l:26
-"struct s_Position {\n                                                                              "    // l:27
-"    bool right;\n                                                                                  "    // l:28
-"    bool low;\n                                                                                    "    // l:29
-"};\n                                                                                               "    // l:30
-"\n                                                                                                 "    // l:31
-"const s_Position PositionTable[4] = s_Position[](\n                                                "    // l:32
-"    s_Position(false, false), s_Position(true, false), s_Position(true, true), s_Position(false, true)\n"    // l:33
-");\n                                                                                               "    // l:34
-"\n                                                                                                 "    // l:35
-"void main() {\n                                                                                    "    // l:36
-"    OBJ = InOBJ;\n                                                                                 "    // l:37
-"    s_Position Position = PositionTable[gl_VertexID & 3];\n                                        "    // l:38
-"\n                                                                                                 "    // l:39
-"    uint Shape = OBJ.attr0 >> 14;\n                                                                "    // l:40
-"    uint Size  = OBJ.attr1 >> 14;\n                                                                "    // l:41
-"\n                                                                                                 "    // l:42
-"    s_ObjSize ObjSize = ObjSizeTable[(Shape * 4u) + Size];\n                                       "    // l:43
-"    ObjWidth = ObjSize.width;\n                                                                    "    // l:44
-"    ObjHeight = ObjSize.height;\n                                                                  "    // l:45
-"\n                                                                                                 "    // l:46
-"    ivec2 ScreenPos = ivec2(OBJ.attr1 & 0x1ffu, OBJ.attr0 & 0xffu);\n                              "    // l:47
-"\n                                                                                                 "    // l:48
-"    // correct position for screen wrapping\n                                                      "    // l:49
-"    if (ScreenPos.x > int(240u)) {\n                                                               "    // l:50
-"        ScreenPos.x -= 0x200;\n                                                                    "    // l:51
-"    }\n                                                                                            "    // l:52
-"\n                                                                                                 "    // l:53
-"    if (ScreenPos.y > int(160u)) {\n                                                               "    // l:54
-"        ScreenPos.y -= 0x100;\n                                                                    "    // l:55
-"    }\n                                                                                            "    // l:56
-"\n                                                                                                 "    // l:57
-"    InObjPos = uvec2(0, 0);\n                                                                      "    // l:58
-"    if (Position.right) {\n                                                                        "    // l:59
-"        InObjPos.x  += ObjWidth;\n                                                                 "    // l:60
-"        ScreenPos.x += int(ObjWidth);\n                                                            "    // l:61
-"\n                                                                                                 "    // l:62
-"        if (Affine) {\n                                                                            "    // l:63
-"            if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                              "    // l:64
-"                // double rendering\n                                                              "    // l:65
-"                InObjPos.x  += ObjWidth;\n                                                         "    // l:66
-"                ScreenPos.x += int(ObjWidth);\n                                                    "    // l:67
-"            }\n                                                                                    "    // l:68
-"        }\n                                                                                        "    // l:69
-"    }\n                                                                                            "    // l:70
-"\n                                                                                                 "    // l:71
-"    if (Position.low) {\n                                                                          "    // l:72
-"        InObjPos.y  += ObjHeight;\n                                                                "    // l:73
-"        ScreenPos.y += int(ObjHeight);\n                                                           "    // l:74
-"\n                                                                                                 "    // l:75
-"        if (Affine) {\n                                                                            "    // l:76
-"            if ((OBJ.attr0 & 0x0300u) == 0x0300u) {\n                                              "    // l:77
-"                // double rendering\n                                                              "    // l:78
-"                InObjPos.y  += ObjHeight;\n                                                        "    // l:79
-"                ScreenPos.y += int(ObjHeight);\n                                                   "    // l:80
-"            }\n                                                                                    "    // l:81
-"        }\n                                                                                        "    // l:82
-"    }\n                                                                                            "    // l:83
-"\n                                                                                                 "    // l:84
-"    // flipping only applies to regular sprites\n                                                  "    // l:85
-"    if (!Affine) {\n                                                                               "    // l:86
-"        if ((OBJ.attr1 & 0x2000u) != 0u) {\n                                                       "    // l:87
-"            // VFlip\n                                                                             "    // l:88
-"            InObjPos.y = ObjHeight - InObjPos.y;\n                                                 "    // l:89
-"        }\n                                                                                        "    // l:90
-"\n                                                                                                 "    // l:91
-"        if ((OBJ.attr1 & 0x1000u) != 0u) {\n                                                       "    // l:92
-"            // HFlip\n                                                                             "    // l:93
-"            InObjPos.x = ObjWidth - InObjPos.x;\n                                                  "    // l:94
-"        }\n                                                                                        "    // l:95
-"    }\n                                                                                            "    // l:96
-"\n                                                                                                 "    // l:97
-"    OnScreenPos = vec2(ScreenPos);\n                                                               "    // l:98
-"\n                                                                                                 "    // l:99
-"#ifndef OBJ_WINDOW\n                                                                               "    // l:100
-"    // depth is the same everywhere in the object anyway\n                                         "    // l:101
-"    uint Priority = (OBJ.attr2 & 0x0c00u) >> 10;\n                                                 "    // l:102
-"\n                                                                                                 "    // l:103
-"    gl_Position = vec4(\n                                                                          "    // l:104
-"        -1.0 + 2.0 * OnScreenPos.x / float(240u),\n                                                "    // l:105
-"        1 - 2.0 * OnScreenPos.y / float(160u),\n                                                   "    // l:106
-"        -1 + float(Priority) / 2.0,  // /2.0 because openGL clips between -1 and 1 (-1 is in front)\n"    // l:107
-"        1\n                                                                                        "    // l:108
-"    );\n                                                                                           "    // l:109
-"#else\n                                                                                            "    // l:110
-"    gl_Position = vec4(\n                                                                          "    // l:111
-"        -1.0 + 2.0 * OnScreenPos.x / float(240u),\n                                                "    // l:112
-"        1 - 2.0 * OnScreenPos.y / float(160u),\n                                                   "    // l:113
-"        0.5,  // between WIN1 and WINOUT\n                                                         "    // l:114
-"        1\n                                                                                        "    // l:115
-"    );\n                                                                                           "    // l:116
-"#endif\n                                                                                           "    // l:117
-"}\n                                                                                                "    // l:118
-"\n                                                                                                 "    // l:119
-;
-
-
-// VertexShaderSource (from vertex.glsl, lines 1 to 23)
+// VertexShaderSource (from vertex.glsl, lines 1 to 24)
 const char* VertexShaderSource = 
 "#version 320 es\n                                                                                  "    // l:1
-"\n                                                                                                 "    // l:2
-"layout (location = 0) in vec2 position;\n                                                          "    // l:3
-"\n                                                                                                 "    // l:4
-"out vec2 screenCoord;\n                                                                            "    // l:5
-"out vec2 OnScreenPos;  // needed for fragment_helpers\n                                            "    // l:6
-"\n                                                                                                 "    // l:7
-"void main() {\n                                                                                    "    // l:8
-"    // convert y coordinate from scanline to screen coordinate\n                                   "    // l:9
-"    gl_Position = vec4(\n                                                                          "    // l:10
-"        position.x,\n                                                                              "    // l:11
-"        1 - (2.0 * position.y) / float(160u), 0, 1\n                                               "    // l:12
-"    );\n                                                                                           "    // l:13
-"\n                                                                                                 "    // l:14
-"    screenCoord = vec2(\n                                                                          "    // l:15
-"        float(240u) * float((1.0 + position.x)) / 2.0,\n                                           "    // l:16
-"        position.y\n                                                                               "    // l:17
-"    );\n                                                                                           "    // l:18
-"\n                                                                                                 "    // l:19
-"    OnScreenPos = screenCoord;\n                                                                   "    // l:20
-"}\n                                                                                                "    // l:21
-"\n                                                                                                 "    // l:22
+"precision mediump float;\n                                                                         "    // l:2
+"\n                                                                                                 "    // l:3
+"layout (location = 0) in vec2 position;\n                                                          "    // l:4
+"\n                                                                                                 "    // l:5
+"out vec2 screenCoord;\n                                                                            "    // l:6
+"out vec2 OnScreenPos;  // needed for fragment_helpers\n                                            "    // l:7
+"\n                                                                                                 "    // l:8
+"void main() {\n                                                                                    "    // l:9
+"    // convert y coordinate from scanline to screen coordinate\n                                   "    // l:10
+"    gl_Position = vec4(\n                                                                          "    // l:11
+"        position.x,\n                                                                              "    // l:12
+"        1.0 - (2.0 * position.y) / float(160u), 0.0, 1.0\n                                         "    // l:13
+"    );\n                                                                                           "    // l:14
+"\n                                                                                                 "    // l:15
+"    screenCoord = vec2(\n                                                                          "    // l:16
+"        float(240u) * (1.0 + position.x) / 2.0,\n                                                  "    // l:17
+"        position.y\n                                                                               "    // l:18
+"    );\n                                                                                           "    // l:19
+"\n                                                                                                 "    // l:20
+"    OnScreenPos = screenCoord;\n                                                                   "    // l:21
+"}\n                                                                                                "    // l:22
+"\n                                                                                                 "    // l:23
 ;
 
 

@@ -380,6 +380,9 @@ GBA* Initializer::init() {
     add_command("UNBREAK", "Remove breakpoint to system at PC = $1.", unbreak_system);
     add_command("STEP", "Step system for $1 CPU steps (defaults to 1 step).", step_system);
     add_command("TRACE", "Trace system for $1 CPU steps.", trace_system);
+//    add_command("CAPTURE_START", "Start frame capture. Usage: CAPTURE_START [directory] [max_frames]", capture_start);
+//    add_command("CAPTURE_STOP", "Stop frame capture.", capture_stop);
+//    add_command("CAPTURE_STATUS", "Show frame capture status.", capture_status);
 #ifndef NDEBUG
     add_command("TEST", "This is just for testing.", tester);
 #endif

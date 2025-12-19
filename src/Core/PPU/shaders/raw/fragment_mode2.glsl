@@ -1,7 +1,5 @@
 // BEGIN FragmentShaderMode2Source
-#version 320 es
 
-uniform uint BG;
 
 uint readVRAM8(uint address);
 uint readVRAM16(uint address);
@@ -31,7 +29,7 @@ vec4 mode2(uint x, uint y, vec2 screen_pos) {
 
     Color = affineBGPixel(BGCNT, screen_pos);
 
-    if (Color.w != 0) {
+    if (Color.w != 0.0) {
         // BG priority
         gl_FragDepth = getDepth(BGCNT);
         return Color;

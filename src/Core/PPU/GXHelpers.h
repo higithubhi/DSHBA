@@ -17,9 +17,10 @@ static void CompileShader(GLuint shader, const char* name) {
 
     if (!success) {
         // GLES shader logs can exceed 1 KB
-        char infoLog[2048];
+        char infoLog[2048];        
         glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-        log_fatal("Shader compilation failed (%s): %s\n", name, infoLog);
+        //log_fatal("Shader compilation failed (%s): %s\n", name, infoLog);
+        log_info("Shader compilation failed (%s): %s\n", name, infoLog);
     }
 }
 

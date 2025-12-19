@@ -15,14 +15,16 @@ void main() {
 
     // default: pick top
     FragColor = vec4(
-        top.rgb, 1
+        top.rgb, 1.0
     );
-    if ((bottom.a != -1) && (bottom.a <= 0)) {
-        // there was a bottom layer in the bottom framebuffer
-        if (top.a >= 0) {
+
+    if ((bottom.a != 0.0) && (bottom.a <= 0.5)) {
+        if (top.a >= 0.5) {
+            float topASNorm = (top.a * 2.0) - 1.0;
+            float bottomASNorm = (bottom.a * 2.0) - 1.0;
+            vec3 blendedColor = top.rgb * topASNorm - 2.0 * bottom.rgb * (bottomASNorm + 0.25);
             FragColor = vec4(
-                // correct for how we store bottom alpha
-                top.rgb * top.a - 2 * bottom.rgb * (bottom.a + 0.25), 1
+                blendedColor, 1.0
             );
         }
     }

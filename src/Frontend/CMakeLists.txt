@@ -37,6 +37,7 @@ set(FRONTEND_SRCS
         controller.cpp
         debugger.cpp
         settings.cpp
+        FrameCapture.cpp
 )
 
 set(FRONTEND_HDRS
@@ -57,6 +58,7 @@ set(FRONTEND_HDRS
         interface.h
         controller.h
         settings.h
+        FrameCapture.h
         widgets/cache_block_stats.h)
 
 add_library(Frontend ${FRONTEND_SRCS} ${FRONTEND_HDRS})

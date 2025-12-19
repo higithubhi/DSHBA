@@ -234,8 +234,8 @@ void GBAPPU::InitFramebuffers() {
     // create a texture to render to and fill it with 0 (also set filtering to low)
     glGenTextures(1, &BottomTexture);
     glBindTexture(GL_TEXTURE_2D, BottomTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8_SNORM, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
-                 0, GL_RGBA, GL_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -303,71 +303,76 @@ void GBAPPU::InitBlitProgram() {
 
 void GBAPPU::InitBGProgram() {
     GLuint vertexShader;
-    GLuint fragmentShader, modeShaders[6], fragmentHelpers;
+    GLuint fragmentShader, modeShaders[6];
 
     // create shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
-    // compile it
+    // compile iti
     glShaderSource(vertexShader, 1, &VertexShaderSource, nullptr);
     glCompileShader(vertexShader);
     CompileShader(vertexShader, "BGVertexShader");
-
+    
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &FragmentShaderSource, nullptr);
+    
+    const char* FSSource[]={
+        FragmentShaderSource,
+        FragmentHelperSource,
+        FragmentShaderMode0Source,
+        FragmentShaderMode1Source,
+        FragmentShaderMode2Source,
+        FragmentShaderMode3Source,
+        FragmentShaderMode4Source,        
+    };
+    glShaderSource(fragmentShader, 7, FSSource, nullptr);
     CompileShader(fragmentShader, "BGFragmentShader");
+    
 
-    fragmentHelpers = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentHelpers, 1, &FragmentHelperSource, nullptr);
-    CompileShader(fragmentHelpers, "BGFragmentHelpers");
-
-    modeShaders[0] = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(modeShaders[0], 1, &FragmentShaderMode0Source, nullptr);
-    CompileShader(modeShaders[0], "modeShaders[0]");
-
-    modeShaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(modeShaders[1], 1, &FragmentShaderMode1Source, nullptr);
-    CompileShader(modeShaders[1], "modeShaders[1]");
-
-    modeShaders[2] = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(modeShaders[2], 1, &FragmentShaderMode2Source, nullptr);
-    CompileShader(modeShaders[2], "modeShaders[2]");
-
-    modeShaders[3] = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(modeShaders[3], 1, &FragmentShaderMode3Source, nullptr);
-    CompileShader(modeShaders[3], "modeShaders[3]");
-
-    modeShaders[4] = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(modeShaders[4], 1, &FragmentShaderMode4Source, nullptr);
-    CompileShader(modeShaders[4], "modeShaders[4]");
+//    modeShaders[0] = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(modeShaders[0], 1, &FragmentShaderMode0Source, nullptr);
+//    CompileShader(modeShaders[0], "modeShaders[0]");
+//
+//    modeShaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(modeShaders[1], 1, &FragmentShaderMode1Source, nullptr);
+//    CompileShader(modeShaders[1], "modeShaders[1]");
+//
+//    modeShaders[2] = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(modeShaders[2], 1, &FragmentShaderMode2Source, nullptr);
+//    CompileShader(modeShaders[2], "modeShaders[2]");
+//
+//    modeShaders[3] = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(modeShaders[3], 1, &FragmentShaderMode3Source, nullptr);
+//    CompileShader(modeShaders[3], "modeShaders[3]");
+//
+//    modeShaders[4] = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(modeShaders[4], 1, &FragmentShaderMode4Source, nullptr);
+//    CompileShader(modeShaders[4], "modeShaders[4]");
 
     // create program object
     BGProgram = glCreateProgram();
     glAttachShader(BGProgram, vertexShader);
     glAttachShader(BGProgram, fragmentShader);
-    glAttachShader(BGProgram, fragmentHelpers);
-    glAttachShader(BGProgram, modeShaders[0]);
-    glAttachShader(BGProgram, modeShaders[1]);
-    glAttachShader(BGProgram, modeShaders[2]);
-    glAttachShader(BGProgram, modeShaders[3]);
-    glAttachShader(BGProgram, modeShaders[4]);
+//    glAttachShader(BGProgram, modeShaders[0]);
+//    glAttachShader(BGProgram, modeShaders[1]);
+//    glAttachShader(BGProgram, modeShaders[2]);
+//    glAttachShader(BGProgram, modeShaders[3]);
+//    glAttachShader(BGProgram, modeShaders[4]);
     LinkProgram(BGProgram, "BG Program");
 
     // dump shaders
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentHelpers);
-    glDeleteShader(modeShaders[0]);
-    glDeleteShader(modeShaders[1]);
-    glDeleteShader(modeShaders[2]);
-    glDeleteShader(modeShaders[3]);
-    glDeleteShader(modeShaders[4]);
+    glDeleteShader(fragmentShader);    
+//    glDeleteShader(modeShaders[0]);
+//    glDeleteShader(modeShaders[1]);
+//    glDeleteShader(modeShaders[2]);
+//    glDeleteShader(modeShaders[3]);
+//    glDeleteShader(modeShaders[4]);
 }
 
 void GBAPPU::InitObjProgram() {
     GLuint vertexShader;
-    GLuint fragmentShader, fragmentHelpers;
+    GLuint fragmentShader;
 
     // create shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -380,29 +385,29 @@ void GBAPPU::InitObjProgram() {
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* frag_sources[3] = {glsl_version, "#undef OBJ_WINDOW\n", ObjectFragmentShaderSource};
-    glShaderSource(fragmentShader, 3, frag_sources, nullptr);
+    const char* frag_sources[4] = {glsl_version, "#undef OBJ_WINDOW\n",FragmentHelperSource, ObjectFragmentShaderSource};
+    glShaderSource(fragmentShader, 4, frag_sources, nullptr);
+    GLint sourceLength = 0;
+    glGetShaderiv(fragmentShader, GL_SHADER_SOURCE_LENGTH, &sourceLength);
+    std::string source(sourceLength, '\0');
+    glGetShaderSource(fragmentShader, sourceLength, nullptr, &source[0]);
     CompileShader(fragmentShader, "ObjectFragmentShader");
-
-    fragmentHelpers = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentHelpers, 1, &FragmentHelperSource, nullptr);
-    CompileShader(fragmentHelpers, "ObjectFragmentHelper");
 
     // create program object
     ObjProgram = glCreateProgram();
     glAttachShader(ObjProgram, vertexShader);
     glAttachShader(ObjProgram, fragmentShader);
-    glAttachShader(ObjProgram, fragmentHelpers);
+
     LinkProgram(ObjProgram, "Obj Program");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentHelpers);
+
 }
 
 void GBAPPU::InitWinBGProgram() {
     GLuint vertexShader;
-    GLuint fragmentShader, fragmentHelpers;
+    GLuint fragmentShader;
 
     // create shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -414,28 +419,23 @@ void GBAPPU::InitWinBGProgram() {
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &WindowFragmentShaderSource, nullptr);
+    const char* WFsource[]={WindowFragmentShaderSource,FragmentHelperSource};
+    glShaderSource(fragmentShader, 2, WFsource, nullptr);
     CompileShader(fragmentShader, "WindowFragmentShader");
-
-    fragmentHelpers = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentHelpers, 1, &FragmentHelperSource, nullptr);
-    CompileShader(fragmentHelpers, "WindowFragmentHelper");
-
+    
     // create program object
     WinBGProgram = glCreateProgram();
     glAttachShader(WinBGProgram, vertexShader);
-    glAttachShader(WinBGProgram, fragmentShader);
-    glAttachShader(WinBGProgram, fragmentHelpers);
+    glAttachShader(WinBGProgram, fragmentShader);    
     LinkProgram(WinBGProgram, "Win BG Program");
 
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentHelpers);
+    glDeleteShader(fragmentShader);    
 }
 
 void GBAPPU::InitWinObjProgram() {
     GLuint vertexShader;
-    GLuint fragmentShader, fragmentHelpers;
+    GLuint fragmentShader;
 
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -447,24 +447,20 @@ void GBAPPU::InitWinObjProgram() {
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* frag_sources[3] = {glsl_version, "#define OBJ_WINDOW\n", ObjectFragmentShaderSource};
-    glShaderSource(fragmentShader, 3, frag_sources, nullptr);
+    const char* frag_sources[4] = {glsl_version, "#define OBJ_WINDOW\n",FragmentHelperSource, ObjectFragmentShaderSource};
+    glShaderSource(fragmentShader, 4, frag_sources, nullptr);
     CompileShader(fragmentShader, "WinObjectFragmentShader");
 
-    fragmentHelpers = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentHelpers, 1, &FragmentHelperSource, nullptr);
-    CompileShader(fragmentHelpers, "WinObjectFragmentHelper");
+   
 
     // create program object
     WinObjProgram = glCreateProgram();
     glAttachShader(WinObjProgram, vertexShader);
     glAttachShader(WinObjProgram, fragmentShader);
-    glAttachShader(WinObjProgram, fragmentHelpers);
     LinkProgram(WinObjProgram, "Win Obj Program");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentHelpers);
 }
 
 void GBAPPU::InitBlitBuffers() {
@@ -802,8 +798,10 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
 
         NumberOfRegularObjVerts = BufferObjects<true, false>(BufferFrame ^ 1, scanline, batch_size);
 
-        // buffer data for regular objects
-        glBufferData(GL_ARRAY_BUFFER, sizeof(u64) * NumberOfRegularObjVerts, ObjAttrBuffer, GL_STATIC_DRAW);
+        if(NumberOfRegularObjVerts>0){
+            // buffer data for regular objects
+            glBufferData(GL_ARRAY_BUFFER, sizeof(u64) * NumberOfRegularObjVerts, ObjAttrBuffer, GL_STATIC_DRAW);
+        }
 
         // find affine objects
         NumberOfAffineObjVerts = BufferObjects<true, true>(BufferFrame ^ 1, scanline, batch_size);
@@ -1174,6 +1172,7 @@ struct s_framebuffer GBAPPU::Render() {
     }
     else {
         std::lock_guard<std::mutex> lock(DrawMutex);
+        glFinish();
         FrameDrawn = true;
         FrameDrawnVariable.notify_all();
     }

@@ -1,7 +1,6 @@
 // defined externally
-#version 320 es
-
 // BEGIN ObjectVertexShaderSource
+precision mediump float;
 
 #define attr0 x
 #define attr1 y
@@ -60,28 +59,28 @@ void main() {
         ScreenPos.y -= 0x100;
     }
 
-    InObjPos = uvec2(0, 0);
+    InObjPos = vec2(0.0, 0.0);
     if (Position.right) {
-        InObjPos.x  += ObjWidth;
+        InObjPos.x  += float(ObjWidth);
         ScreenPos.x += int(ObjWidth);
 
         if (Affine) {
             if ((OBJ.attr0 & ++ATTR0_OM++) == ++ATTR0_AFF_DBL++) {
                 // double rendering
-                InObjPos.x  += ObjWidth;
+                InObjPos.x  += float(ObjWidth);
                 ScreenPos.x += int(ObjWidth);
             }
         }
     }
 
     if (Position.low) {
-        InObjPos.y  += ObjHeight;
+        InObjPos.y  += float(ObjHeight);
         ScreenPos.y += int(ObjHeight);
 
         if (Affine) {
             if ((OBJ.attr0 & ++ATTR0_OM++) == ++ATTR0_AFF_DBL++) {
                 // double rendering
-                InObjPos.y  += ObjHeight;
+                InObjPos.y  += float(ObjHeight);
                 ScreenPos.y += int(ObjHeight);
             }
         }
@@ -91,12 +90,12 @@ void main() {
     if (!Affine) {
         if ((OBJ.attr1 & ++ATTR1_VF++) != 0u) {
             // VFlip
-            InObjPos.y = ObjHeight - InObjPos.y;
+            InObjPos.y = float(ObjHeight) - InObjPos.y;
         }
 
         if ((OBJ.attr1 & ++ATTR1_HF++) != 0u) {
             // HFlip
-            InObjPos.x = ObjWidth - InObjPos.x;
+            InObjPos.x = float(ObjWidth) - InObjPos.x;
         }
     }
 
@@ -108,16 +107,16 @@ void main() {
 
     gl_Position = vec4(
         -1.0 + 2.0 * OnScreenPos.x / float(++VISIBLE_SCREEN_WIDTH++),
-        1 - 2.0 * OnScreenPos.y / float(++VISIBLE_SCREEN_HEIGHT++),
-        -1 + float(Priority) / 2.0,  // /2.0 because openGL clips between -1 and 1 (-1 is in front)
-        1
+        1.0 - 2.0 * OnScreenPos.y / float(++VISIBLE_SCREEN_HEIGHT++),
+        -1.0 + float(Priority) / 2.0,  // /2.0 because openGL clips between -1 and 1 (-1 is in front)
+        1.0
     );
 #else
     gl_Position = vec4(
         -1.0 + 2.0 * OnScreenPos.x / float(++VISIBLE_SCREEN_WIDTH++),
-        1 - 2.0 * OnScreenPos.y / float(++VISIBLE_SCREEN_HEIGHT++),
+        1.0 - 2.0 * OnScreenPos.y / float(++VISIBLE_SCREEN_HEIGHT++),
         0.5,  // between WIN1 and WINOUT
-        1
+        1.0
     );
 #endif
 }

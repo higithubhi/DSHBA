@@ -1,7 +1,4 @@
 // BEGIN FragmentShaderMode3Source
-#version 320 es
-
-uniform uint BG;
 
 uint readVRAM8(uint address);
 uint readVRAM16(uint address);
@@ -29,14 +26,14 @@ vec4 mode3(uint x, uint y) {
 
     uint PackedColor = readVRAM16(VRAMAddr);
 
-    vec4 Color = vec4(0, 0, 0, 32);  // to be scaled later
+    vec4 Color = vec4(0.0, 0.0, 0.0, 32.0);  // to be scaled later
 
     // BGR format
-    Color.r = PackedColor & 0x1fu;
+    Color.r = float(PackedColor & 0x1fu);
     PackedColor >>= 5u;
-    Color.g = PackedColor & 0x1fu;
+    Color.g = float(PackedColor & 0x1fu);
     PackedColor >>= 5u;
-    Color.b = PackedColor & 0x1fu;
+    Color.b = float(PackedColor & 0x1fu);
 
     uint BGCNT = readIOreg(++BG2CNT++);
     gl_FragDepth = getDepth(BGCNT);

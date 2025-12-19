@@ -4,11 +4,15 @@
 #include "interface.h"
 #include "controller.h"
 #include "settings.h"
+#include "FrameCapture.h"
 
 //#include "widgets/file_dialog.h"
 
 #include <cstdio>
+#include <filesystem>
+#include <memory>
 #include <SDL.h>
+
 SDL_atomic_t bCanCreateWindow;
 unsigned WINDOW_WIDTH = 1280;
 unsigned WINDOW_HEIGHT = 720;
@@ -32,6 +36,9 @@ static struct s_frontend {
 
     void (*audio_init)();
     void (*audio_destroy)();
+    
+    // 帧捕获器
+    std::shared_ptr<FrameCapture> frame_capture;
 } Frontend;
 
 ImGuiIO *frontend_set_io() {
@@ -123,11 +130,22 @@ void init_gamecontroller() {
     printf("No gamepads detected (only joysticks)\n");
 }
 
+// 全局访问函数，用于从init.cpp访问帧捕获器
+std::shared_ptr<FrameCapture> get_frame_capture() {
+    return Frontend.frame_capture;
+}
 int ui_run() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER ) != 0) {
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
+    
+    // 初始化帧捕获器
+    Frontend.frame_capture = std::make_shared<FrameCapture>(); 
+    Frontend.frame_capture->setEnabled(false);
+    Frontend.frame_capture->setSkipFrames(2357);
+    
+    
     init_controller_mapping(CONTROLLER_MAP_FILE);
     init_gamecontroller();
 
@@ -295,6 +313,11 @@ int ui_run() {
         // then draw the imGui stuff over it
         //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        // 帧捕获 - 在交换缓冲区之前捕获当前帧
+        if (Frontend.frame_capture && Frontend.frame_capture->isEnabled()) {
+            Frontend.frame_capture->captureFrame(WINDOW_WIDTH, WINDOW_HEIGHT);
+        }
+        
         // frameswap
         SDL_GL_SwapWindow(window);
     }
@@ -323,7 +346,6 @@ int ui_run() {
     printf("Frontend destroyed\n");
     return 0;
 }
-
 #ifdef __cplusplus
 }
 #endif

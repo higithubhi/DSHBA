@@ -1,5 +1,7 @@
 // BEGIN FragmentHelperSource
-#version 320 es
+precision mediump float;
+precision mediump usampler2D;
+precision mediump isampler2D;
 
 /* GENERAL */
 in vec2 OnScreenPos;
@@ -132,7 +134,7 @@ uint readVRAM32(uint address) {
 
 uint readIOreg(uint address) {
     return texelFetch(
-        IO, ivec2(address >> 1u, uint(OnScreenPos.y)), 0
+        IO, ivec2(int(address >> 1u), int(OnScreenPos.y)), 0
     ).x;
 }
 
@@ -150,13 +152,13 @@ vec3 decodeBGR555(uint v) {
 }
 
 vec4 readPALentry(uint index) {
-    uint v = texelFetch(PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0).r;
+    uint v = texelFetch(PAL, ivec2(int(index), int(PALBufferIndex[uint(OnScreenPos.y)])), 0).r;
     return vec4(decodeBGR555(v), 1.0);
 }
 
 uint getWindow(uint x, uint y) {
     return texelFetch(
-        Window, ivec2(x, ++VISIBLE_SCREEN_HEIGHT++ - y), 0
+        Window, ivec2(x, int(++VISIBLE_SCREEN_HEIGHT++) - int(y)), 0
     ).r;
 }
 
