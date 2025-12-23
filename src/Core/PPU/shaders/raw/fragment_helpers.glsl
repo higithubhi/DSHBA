@@ -1,9 +1,10 @@
 // BEGIN FragmentHelperSource
+/* GENERAL */
 precision mediump float;
+precision highp int;
 precision mediump usampler2D;
 precision mediump isampler2D;
 
-/* GENERAL */
 in vec2 OnScreenPos;
 
 uniform usampler2D PAL;

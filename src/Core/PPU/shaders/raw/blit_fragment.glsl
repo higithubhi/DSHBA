@@ -1,6 +1,9 @@
 // BEGIN BlitFragmentShaderSource
 #version 320 es
 precision mediump float;
+precision highp int;
+precision mediump usampler2D;
+precision mediump isampler2D;
 
 in vec2 texCoord;
 

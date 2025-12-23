@@ -684,15 +684,15 @@ void GBAPPU::InitWinObjBuffers() {
     glVertexAttribIPointer(0, 4, GL_UNSIGNED_SHORT, sizeof(u64), (void*)0);  // OBJ attributes
     glEnableVertexAttribArray(0);
 
-    glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
-    glGenTextures(1, &OAMTexture);
-    glBindTexture(GL_TEXTURE_2D, OAMTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1, 0, GL_RGBA_INTEGER,
-                 GL_SHORT, nullptr);
+//    glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
+//    //glGenTextures(1, &OAMTexture);
+//    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//
+//    // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1, 0, GL_RGBA_INTEGER,
+//                 GL_SHORT, nullptr);
 
     WinObjOAMLocation = glGetUniformLocation(WinObjProgram, "OAM");
 

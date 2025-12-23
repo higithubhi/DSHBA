@@ -8,7 +8,7 @@
 // glad must be generated for GLES (gles2 profile w/ 3.2)
 // ---------------------
 #include <GLES3/gl32.h>
-
+#include <string>
 static void CompileShader(GLuint shader, const char* name) {
     glCompileShader(shader);
 
@@ -17,6 +17,10 @@ static void CompileShader(GLuint shader, const char* name) {
 
     if (!success) {
         // GLES shader logs can exceed 1 KB
+        GLint sourceLength = 0;
+        glGetShaderiv(shader, GL_SHADER_SOURCE_LENGTH, &sourceLength);
+        std::string source(sourceLength, '\0');
+        glGetShaderSource(shader, sourceLength, nullptr, &source[0]);
         char infoLog[2048];        
         glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
         //log_fatal("Shader compilation failed (%s): %s\n", name, infoLog);
