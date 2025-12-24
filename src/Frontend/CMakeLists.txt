@@ -1,5 +1,13 @@
 find_package(SDL2 REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finput-charset=UTF-8 -fexec-charset=UTF-8")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -finput-charset=UTF-8 -fexec-charset=UTF-8")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
+endif()
 set(FOUND_CAPSTONE 0)
 if (WIN32)
     find_library(Capstone capstone_dll)
@@ -37,6 +45,7 @@ set(FRONTEND_SRCS
         controller.cpp
         debugger.cpp
         settings.cpp
+        FrameCapture.cpp
 )
 
 set(FRONTEND_HDRS
@@ -57,6 +66,7 @@ set(FRONTEND_HDRS
         interface.h
         controller.h
         settings.h
+        FrameCapture.h
         widgets/cache_block_stats.h)
 
 add_library(Frontend ${FRONTEND_SRCS} ${FRONTEND_HDRS})
@@ -67,7 +77,7 @@ set_target_properties(Frontend PROPERTIES
                       CXX_STANDARD_REQUIRED YES
                       CXX_EXTENSIONS ON)
 
-target_link_libraries(Frontend PRIVATE ${SDL2_LIBRARY})
+target_link_libraries(Frontend PRIVATE ${SDL2_LIBRARY} SDL2_image::SDL2_image)
 
 if (FOUND_CAPSTONE)
     if (WIN32)

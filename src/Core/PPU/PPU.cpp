@@ -47,6 +47,10 @@ void GBAPPU::BufferScanline(u32 scanline) {
     u32 DrawFrame = BufferFrame ^ 1;
 
     if (unlikely(scanline == 0)) {
+        // report mode/layer changes for last batch
+        ScanlineAccumLayerFlags[BufferFrame][CurrentVRAMScanlineBatch] = Memory->IO->ScanlineAccumLayerFlags;
+        Memory->IO->ResetAccumLayerFlags();
+
         Frame++;
 
         // we really only need to lock for swapping the frame
@@ -595,12 +599,12 @@ void GBAPPU::InitObjBuffers() {
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
     glGenTextures(1, &OAMTexture);
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3,1, 0, GL_RGBA_INTEGER,
                  GL_SHORT, nullptr);
 
     ObjOAMLocation = glGetUniformLocation(ObjProgram, "OAM");
@@ -687,15 +691,15 @@ void GBAPPU::InitWinObjBuffers() {
     glVertexAttribIPointer(0, 4, GL_UNSIGNED_SHORT, sizeof(u64), (void*)0);  // OBJ attributes
     glEnableVertexAttribArray(0);
 
-    glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
-    glGenTextures(1, &OAMTexture);
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
+    //glGenTextures(1, &OAMTexture);
+    //glBindTexture(GL_TEXTURE_1D, OAMTexture);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
-                 GL_SHORT, nullptr);
+    //// dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
+    //glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
+    //             GL_SHORT, nullptr);
 
     WinObjOAMLocation = glGetUniformLocation(WinObjProgram, "OAM");
 
@@ -814,8 +818,8 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
         }
 
         // bind and buffer OAM texture
-        glBindTexture(GL_TEXTURE_1D, OAMTexture);
-        glTexSubImage1D(GL_TEXTURE_1D, 0, 0, sizeof(OAMMEM) >> 3,
+        glBindTexture(GL_TEXTURE_2D, OAMTexture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,sizeof(OAMMEM) >> 3,1,
                         GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
 
         glUniform1ui(WinObjYClipStartLocation, scanline);
@@ -903,8 +907,8 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
 
     // bind and buffer OAM texture
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
-    glBindTexture(GL_TEXTURE_1D, OAMTexture);
-    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, sizeof(OAMMEM) >> 3,
+    glBindTexture(GL_TEXTURE_2D, OAMTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,sizeof(OAMMEM) >> 3,1,
                     GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::LCDIO));

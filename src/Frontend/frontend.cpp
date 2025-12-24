@@ -9,7 +9,7 @@
 
 #include <cstdio>
 #include <SDL.h>
-
+#include "FrameCapture.h"
 const unsigned WINDOW_WIDTH = 1280;
 const unsigned WINDOW_HEIGHT = 720;
 #define FPS 60
@@ -38,6 +38,7 @@ ImGuiIO *frontend_set_io() {
     Frontend.io = ImGui::GetIO();
     return &Frontend.io;
 }
+FrameCapture frame_capture;
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +58,8 @@ void frontend_init(
     debugger_init(
             PC, mem_size, valid_address_mask, mem_read, arm_mode
     );
+	frame_capture.setEnabled(false);
+    frame_capture.setSkipFrames(2048);
 }
 
 void bind_video_init(void (*initializer)()) {
@@ -291,6 +294,7 @@ int ui_run() {
         // then draw the imGui stuff over it
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		frame_capture.captureFrame(WINDOW_WIDTH, WINDOW_HEIGHT);
         // frameswap
         SDL_GL_SwapWindow(window);
     }

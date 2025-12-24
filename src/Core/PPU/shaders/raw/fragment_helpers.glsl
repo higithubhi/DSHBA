@@ -8,7 +8,7 @@ in vec2 OnScreenPos;
 uniform sampler2D PAL;
 uniform usampler2D VRAM;
 uniform usampler2D IO;
-uniform isampler1D OAM;
+uniform isampler2D OAM;
 uniform usampler2D Window;
 
 uniform bool Bottom;
@@ -139,7 +139,7 @@ uint readIOreg(uint address) {
 
 ivec4 readOAMentry(uint index) {
     return texelFetch(
-        OAM, int(index), 0
+        OAM, ivec2(index + 0u, 0), 0
     );
 }
 

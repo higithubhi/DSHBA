@@ -371,7 +371,7 @@ const char* FragmentHelperSource =
 "uniform sampler2D PAL;\n                                                                           "    // l:6
 "uniform usampler2D VRAM;\n                                                                         "    // l:7
 "uniform usampler2D IO;\n                                                                           "    // l:8
-"uniform isampler1D OAM;\n                                                                          "    // l:9
+"uniform isampler2D OAM;\n                                                                          "    // l:9
 "uniform usampler2D Window;\n                                                                       "    // l:10
 "\n                                                                                                 "    // l:11
 "uniform bool Bottom;\n                                                                             "    // l:12
@@ -502,7 +502,7 @@ const char* FragmentHelperSource =
 "\n                                                                                                 "    // l:137
 "ivec4 readOAMentry(uint index) {\n                                                                 "    // l:138
 "    return texelFetch(\n                                                                           "    // l:139
-"        OAM, int(index), 0\n                                                                       "    // l:140
+"        OAM, ivec2(index + 0u, 0), 0\n                                                             "    // l:140
 "    );\n                                                                                           "    // l:141
 "}\n                                                                                                "    // l:142
 "\n                                                                                                 "    // l:143
@@ -1198,7 +1198,7 @@ const char* VertexShaderSource =
 ;
 
 
-// WindowFragmentShaderSource (from window_fragment.glsl, lines 2 to 86)
+// WindowFragmentShaderSource (from window_fragment.glsl, lines 2 to 82)
 const char* WindowFragmentShaderSource = 
 "#version 330 core\n                                                                                "    // l:1
 "\n                                                                                                 "    // l:2
@@ -1224,8 +1224,8 @@ const char* WindowFragmentShaderSource =
 "        return;\n                                                                                  "    // l:22
 "    }\n                                                                                            "    // l:23
 "\n                                                                                                 "    // l:24
-"    uint x = uint(screenCoord.x);\n                                                                "    // l:25
-"    uint y = uint(screenCoord.y);\n                                                                "    // l:26
+"    uint x = clamp(uint(screenCoord.x), 0u, 240u );\n                                              "    // l:25
+"    uint y = clamp(uint(screenCoord.y), 0u, 160u); \n                                              "    // l:26
 "\n                                                                                                 "    // l:27
 "    // window 0 has higher priority\n                                                              "    // l:28
 "    for (uint window = 0u; window < 2u; window++) {\n                                              "    // l:29
@@ -1238,52 +1238,48 @@ const char* WindowFragmentShaderSource =
 "        uint WINV = readIOreg(0x44u + 2u * window);\n                                              "    // l:36
 "        uint WININ = (readIOreg(0x48u) >> (window * 8u)) & 0x3fu;\n                                "    // l:37
 "\n                                                                                                 "    // l:38
-"        uint X1 = WINH >> 8;\n                                                                     "    // l:39
-"        uint X2 = WINH & 0xffu;\n                                                                  "    // l:40
-"        if (X2 > 240u) {\n                                                                         "    // l:41
-"            X2 = 240u;\n                                                                           "    // l:42
-"        }\n                                                                                        "    // l:43
-"\n                                                                                                 "    // l:44
-"        uint Y1 = WINV >> 8;\n                                                                     "    // l:45
-"        uint Y2 = WINV & 0xffu;\n                                                                  "    // l:46
-"\n                                                                                                 "    // l:47
-"        if (Y1 <= Y2) {\n                                                                          "    // l:48
-"            // no vert wrap and out of bounds, continue\n                                          "    // l:49
-"            if (y < Y1 || y > Y2) {\n                                                              "    // l:50
-"                continue;\n                                                                        "    // l:51
-"            }\n                                                                                    "    // l:52
-"        }\n                                                                                        "    // l:53
-"        else {\n                                                                                   "    // l:54
-"            // vert wrap and \"in bounds\":\n                                                      "    // l:55
-"            if ((y < Y1) && (y > Y2)) {\n                                                          "    // l:56
-"                continue;\n                                                                        "    // l:57
-"            }\n                                                                                    "    // l:58
-"        }\n                                                                                        "    // l:59
-"\n                                                                                                 "    // l:60
-"        if (X1 <= X2) {\n                                                                          "    // l:61
-"            // no hor wrap\n                                                                       "    // l:62
-"            if (x >= X1 && x < X2) {\n                                                             "    // l:63
-"                // pixel in WININ\n                                                                "    // l:64
-"                FragColor.x = WININ;\n                                                             "    // l:65
-"                gl_FragDepth = 0.0;\n                                                              "    // l:66
-"                return;\n                                                                          "    // l:67
-"            }\n                                                                                    "    // l:68
-"        }\n                                                                                        "    // l:69
-"        else {\n                                                                                   "    // l:70
-"            // hor wrap\n                                                                          "    // l:71
-"            if (x < X2 || x >= X1) {\n                                                             "    // l:72
-"                // pixel in WININ\n                                                                "    // l:73
-"                FragColor.x = WININ;\n                                                             "    // l:74
-"                gl_FragDepth = 0.0;\n                                                              "    // l:75
-"                return;\n                                                                          "    // l:76
-"            }\n                                                                                    "    // l:77
-"        }\n                                                                                        "    // l:78
-"    }\n                                                                                            "    // l:79
+"        uint X1 = clamp(WINH >> 8u, 0u, 240u );\n                                                  "    // l:39
+"        uint X2 = clamp(WINH & 0xffu, 0u, 240u );\n                                                "    // l:40
+"        uint Y1 = clamp(WINV >> 8u, 0u, 160u);\n                                                   "    // l:41
+"        uint Y2 = clamp(WINV & 0xffu, 0u, 160u);\n                                                 "    // l:42
+"\n                                                                                                 "    // l:43
+"        if (Y1 <= Y2) {\n                                                                          "    // l:44
+"            // no vert wrap and out of bounds, continue\n                                          "    // l:45
+"            if (y < Y1 || y >= Y2) {\n                                                             "    // l:46
+"                continue;\n                                                                        "    // l:47
+"            }\n                                                                                    "    // l:48
+"        }\n                                                                                        "    // l:49
+"        else {\n                                                                                   "    // l:50
+"            // vert wrap and \"in bounds\":\n                                                      "    // l:51
+"            if ((y < Y1) && (y >= Y2)) {\n                                                         "    // l:52
+"                continue;\n                                                                        "    // l:53
+"            }\n                                                                                    "    // l:54
+"        }\n                                                                                        "    // l:55
+"\n                                                                                                 "    // l:56
+"        if (X1 <= X2) {\n                                                                          "    // l:57
+"            // no hor wrap\n                                                                       "    // l:58
+"            if (x >= X1 && x < X2) {\n                                                             "    // l:59
+"                // pixel in WININ\n                                                                "    // l:60
+"                FragColor.x = WININ;\n                                                             "    // l:61
+"                gl_FragDepth = 0.0;\n                                                              "    // l:62
+"                return;\n                                                                          "    // l:63
+"            }\n                                                                                    "    // l:64
+"        }\n                                                                                        "    // l:65
+"        else {\n                                                                                   "    // l:66
+"            // hor wrap\n                                                                          "    // l:67
+"            if (x < X2 || x >= X1) {\n                                                             "    // l:68
+"                // pixel in WININ\n                                                                "    // l:69
+"                FragColor.x = WININ;\n                                                             "    // l:70
+"                gl_FragDepth = 0.0;\n                                                              "    // l:71
+"                return;\n                                                                          "    // l:72
+"            }\n                                                                                    "    // l:73
+"        }\n                                                                                        "    // l:74
+"    }\n                                                                                            "    // l:75
+"\n                                                                                                 "    // l:76
+"    FragColor.x = readIOreg(0x4au) & 0x3fu;  // WINOUT\n                                           "    // l:77
+"    gl_FragDepth = 1.0;\n                                                                          "    // l:78
+"}\n                                                                                                "    // l:79
 "\n                                                                                                 "    // l:80
-"    FragColor.x = readIOreg(0x4au) & 0x3fu;  // WINOUT\n                                           "    // l:81
-"    gl_FragDepth = 1.0;\n                                                                          "    // l:82
-"}\n                                                                                                "    // l:83
-"\n                                                                                                 "    // l:84
 ;
 
 #endif  // GC__SHADER_H
