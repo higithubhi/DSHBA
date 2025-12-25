@@ -1,14 +1,7 @@
 // BEGIN FragmentShaderMode0Source
 
-uint readVRAM8(uint address);
-uint readVRAM16(uint address);
-uint readVRAM32(uint address);
 
-uint readIOreg(uint address);
-vec4 readPALentry(uint index);
-
-vec4 regularBGPixel(uint BGCNT, uint x, uint y);
-float getDepth(uint BGCNT);
+// Declarations moved to shared header (fragment.glsl/fragment_helpers.glsl)
 
 vec4 mode0(uint x, uint y) {
     uint DISPCNT = readIOreg(++DISPCNT++);

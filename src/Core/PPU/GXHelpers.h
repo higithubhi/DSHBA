@@ -4,18 +4,14 @@
 #include "default.h"
 #include "log.h"
 
-// ----- IMPORTANT -----
-// glad must be generated for GLES (gles2 profile w/ 3.2)
-// ---------------------
 #include <GLES3/gl32.h>
 #include <string>
-static void CompileShader(GLuint shader, const char* name) {
+static void CompileShader(unsigned int shader, const char* name) {
     glCompileShader(shader);
-
-    GLint success = 0;
+    int  success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
+    if(!success)
+    {
         // GLES shader logs can exceed 1 KB
         GLint sourceLength = 0;
         glGetShaderiv(shader, GL_SHADER_SOURCE_LENGTH, &sourceLength);
@@ -23,39 +19,36 @@ static void CompileShader(GLuint shader, const char* name) {
         glGetShaderSource(shader, sourceLength, nullptr, &source[0]);
         char infoLog[2048];        
         glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-        //log_fatal("Shader compilation failed (%s): %s\n", name, infoLog);
-        log_info("Shader compilation failed (%s): %s\n", name, infoLog);
+        log_fatal("Shader compilation failed (%s): %s\n", name, infoLog);
     }
 }
 
-static void LinkProgram(GLuint program, const char* name) {
+static void LinkProgram(unsigned int program, const char* name) {
     glLinkProgram(program);
 
-    GLint success = 0;
+    int  success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-    if (!success) {
-        char infoLog[2048];
-        glGetProgramInfoLog(program, sizeof(infoLog), nullptr, infoLog);
-        log_fatal("Shader program linking failed (%s): %s\n", name, infoLog);
+    if(!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        log_fatal("Shader program %s linking failed: %s\n", name, infoLog);
     }
 }
 
 static void CheckFramebufferInit(const char* name) {
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        switch (status) {
+    GLenum buffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (buffer_status != GL_FRAMEBUFFER_COMPLETE) {
+        switch (buffer_status) {
             case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                log_fatal("Framebuffer %s incomplete attachment", name);
+                log_fatal("Error initializing %s framebuffer, incomplete attachment", name);
             case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                log_fatal("Framebuffer %s missing attachment", name);
+                log_fatal("Error initializing %s framebuffer, missing attachment", name);
             case GL_FRAMEBUFFER_UNSUPPORTED:
-                log_fatal("Framebuffer %s unsupported format", name);
+                log_fatal("Error initializing %s framebuffer, unsupported", name);
             default:
-                log_fatal("Framebuffer %s unknown error (0x%x)", name, status);
+                log_fatal("Error initializing %s framebuffer, unknown error %x", name, buffer_status);
         }
     }
 }
 
-#endif // DSHBA_GXHELPERS_H
+#endif //DSHBA_GXHELPERS_H

@@ -1,10 +1,7 @@
 // BEGIN FragmentHelperSource
-/* GENERAL */
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
 
+
+/* GENERAL */
 in vec2 OnScreenPos;
 
 uniform usampler2D PAL;
@@ -15,7 +12,15 @@ uniform usampler2D Window;
 
 uniform bool Bottom;
 
-uniform uint PALBufferIndex[++VISIBLE_SCREEN_HEIGHT++];
+uniform int PALBufferIndex[++VISIBLE_SCREEN_HEIGHT++];
+
+// Common Uniforms
+uniform uint BG;
+
+// Forward Declarations for functions implemented in fragment.glsl
+vec4 regularBGPixel(uint BGCNT, uint x, uint y);
+vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);
+float getDepth(uint BGCNT);
 
 uint readIOreg(uint address);
 
@@ -43,7 +48,7 @@ void CheckBottom(uint layer, uint window) {
         }
 
         if ((window & 0x20u) == 0u) {
-            // blending disabled in window, don't render on bottom frame
+            // blending disabled in window, don't render on bottom layer
             discard;
         }
     }
@@ -53,7 +58,7 @@ vec4 AlphaCorrect(vec4 color, uint layer, uint window) {
     // BG0-3, 4 for Obj, 5 for BD
     if ((window & 0x20u) == 0u) {
         // blending disabled in window
-        return vec4(color.rgb, -1);
+        return vec4(color.rgb, 0.0);
     }
 
     uint BLDCNT = readIOreg(++BLDCNT++);
@@ -62,7 +67,7 @@ vec4 AlphaCorrect(vec4 color, uint layer, uint window) {
     switch (BLDCNT & 0x00c0u) {
         case 0x0000u:
             // blending disabled
-            return vec4(color.rgb, -1);
+            return vec4(color.rgb, 0.0);
         case 0x0040u:
             // normal blending, do this after (most complicated)
             break;
@@ -71,20 +76,20 @@ vec4 AlphaCorrect(vec4 color, uint layer, uint window) {
             // blend A with white
             if ((BLDCNT & (1u << layer)) != 0u) {
                 // layer is top layer
-                return vec4(mix(color.rgb, vec3(1), float(BLDY) / 16.0), -1.0);
+                return vec4(mix(color.rgb, vec3(1), float(BLDY) / 16.0), 0.0);
             }
             // bottom layer, not blended
-            return vec4(color.rgb, -1);
+            return vec4(color.rgb, 0.0);
         }
         case 0x00c0u:
         {
             // blend A with black
             if ((BLDCNT & (1u << layer)) != 0u) {
                 // layer is top layer
-                return vec4(mix(color.rgb, vec3(0), float(BLDY) / 16.0), -1.0);
+                return vec4(mix(color.rgb, vec3(0), float(BLDY) / 16.0), 0.0);
             }
             // bottom layer, not blended
-            return vec4(color.rgb, -1);
+            return vec4(color.rgb, 0.0);
         }
     }
 
@@ -96,7 +101,8 @@ vec4 AlphaCorrect(vec4 color, uint layer, uint window) {
     if ((BLDCNT & (1u << layer)) != 0u) {
         // top layer
         if (!Bottom) {
-            return vec4(color.rgb, float(BLD_EVA) / 16.0);
+            float val = float(BLD_EVA) / 16.0;
+            return vec4(color.rgb, val * 0.5 + 0.5);
         }
         else {
             discard;
@@ -108,11 +114,12 @@ vec4 AlphaCorrect(vec4 color, uint layer, uint window) {
         // -1 means: final color
         // negative: bottom
         // positive: top
-        return vec4(color.rgb, -0.25 - (float(BLD_EVB) / 32.0));
+        float val = -0.25 - (float(BLD_EVB) / 32.0);
+        return vec4(color.rgb, val * 0.5 + 0.5);
     }
 
     // neither
-    return vec4(color.rgb, -1);
+    return vec4(color.rgb, 0.0);
 }
 
 uint readVRAM8(uint address) {
@@ -135,31 +142,33 @@ uint readVRAM32(uint address) {
 
 uint readIOreg(uint address) {
     return texelFetch(
-        IO, ivec2(int(address >> 1u), int(OnScreenPos.y)), 0
+        IO, ivec2(address >> 1u, uint(OnScreenPos.y)), 0
     ).x;
 }
 
 ivec4 readOAMentry(uint index) {
     return texelFetch(
-        OAM, ivec2(int(index), 0), 0
+        OAM, ivec2(index + 0u, 0), 0
     );
 }
 
-vec3 decodeBGR555(uint v) {
-    uint r =  v        & 31u;
-    uint g = (v >> 5u) & 31u;
-    uint b = (v >> 10u)& 31u;
-    return vec3(r, g, b) / 31.0;
-}
-
 vec4 readPALentry(uint index) {
-    uint v = texelFetch(PAL, ivec2(int(index), int(PALBufferIndex[uint(OnScreenPos.y)])), 0).r;
-    return vec4(decodeBGR555(v), 1.0);
+    // Decode 15-bit color (BGR 555)
+    // format: 0BBBBBGGGGGRRRRR
+    uint val = texelFetch(
+        PAL, ivec2(index, PALBufferIndex[uint(OnScreenPos.y)]), 0
+    ).r;
+    
+    float r = float(val & 0x1Fu) / 31.0;
+    float g = float((val >> 5u) & 0x1Fu) / 31.0;
+    float b = float((val >> 10u) & 0x1Fu) / 31.0;
+    
+    return vec4(r, g, b, 1.0);
 }
 
 uint getWindow(uint x, uint y) {
     return texelFetch(
-        Window, ivec2(x, int(++VISIBLE_SCREEN_HEIGHT++) - int(y)), 0
+        Window, ivec2(x, ++VISIBLE_SCREEN_HEIGHT++ - y), 0
     ).r;
 }
 

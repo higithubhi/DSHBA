@@ -1,9 +1,5 @@
 // BEGIN WindowFragmentShaderSource
-#version 320 es
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
+
 
 in vec2 screenCoord;
 
@@ -27,8 +23,8 @@ void main() {
         return;
     }
 
-    uint x = clamp(uint(screenCoord.x), 0u, ++VISIBLE_SCREEN_WIDTH++ );
-    uint y = clamp(uint(screenCoord.y), 0u, ++VISIBLE_SCREEN_HEIGHT++); 
+    uint x = clamp(uint(screenCoord.x), 0u, uint(++VISIBLE_SCREEN_WIDTH++) );
+    uint y = clamp(uint(screenCoord.y), 0u, uint(++VISIBLE_SCREEN_HEIGHT++)); 
 
     // window 0 has higher priority
     for (uint window = 0u; window < 2u; window++) {
@@ -41,10 +37,10 @@ void main() {
         uint WINV = readIOreg(++WIN0V++ + 2u * window);
         uint WININ = (readIOreg(++WININ++) >> (window * 8u)) & 0x3fu;
 
-        uint X1 = clamp(WINH >> 8u, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint X2 = clamp(WINH & 0xffu, 0u, ++VISIBLE_SCREEN_WIDTH++ );
-        uint Y1 = clamp(WINV >> 8u, 0u, ++VISIBLE_SCREEN_HEIGHT++);
-        uint Y2 = clamp(WINV & 0xffu, 0u, ++VISIBLE_SCREEN_HEIGHT++);
+        uint X1 = clamp(WINH >> 8u, 0u, uint(++VISIBLE_SCREEN_WIDTH++) );
+        uint X2 = clamp(WINH & 0xffu, 0u, uint(++VISIBLE_SCREEN_WIDTH++) );
+        uint Y1 = clamp(WINV >> 8u, 0u, uint(++VISIBLE_SCREEN_HEIGHT++));
+        uint Y2 = clamp(WINV & 0xffu, 0u, uint(++VISIBLE_SCREEN_HEIGHT++));
 
         if (Y1 <= Y2) {
             // no vert wrap and out of bounds, continue

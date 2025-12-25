@@ -14,7 +14,9 @@
 #include <map>
 #include <SDL.h>
 
-const char* glsl_version = "#version 320 es\n";
+
+const char* glsl_version = "#version 320 es\nprecision highp  float;\nprecision highp  int;\nprecision highp  usampler2D;\nprecision highp  isampler2D;\nprecision highp  sampler2D;\n";
+
 
 #define INTERNAL_FRAMEBUFFER_WIDTH 480
 #define INTERNAL_FRAMEBUFFER_HEIGHT 320
@@ -47,6 +49,10 @@ void GBAPPU::BufferScanline(u32 scanline) {
     u32 DrawFrame = BufferFrame ^ 1;
 
     if (unlikely(scanline == 0)) {
+        // report mode/layer changes for last batch
+        ScanlineAccumLayerFlags[BufferFrame][CurrentVRAMScanlineBatch] = Memory->IO->ScanlineAccumLayerFlags;
+        Memory->IO->ResetAccumLayerFlags();
+
         Frame++;
 
         // we really only need to lock for swapping the frame
@@ -204,24 +210,24 @@ void GBAPPU::InitFramebuffers() {
     // we render to this separately and blit it over the actual picture like an overlay
     glGenFramebuffers(1, &TopFramebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, TopFramebuffer);
-
+    const GLenum  DEPTH_VALUE=GL_DEPTH_COMPONENT24;
     GLuint depth_buffer;
     // create a texture to render to and fill it with 0 (also set filtering to low)
     glGenTextures(1, &TopTexture);
     glBindTexture(GL_TEXTURE_2D, TopTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
+   
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
-
-    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TopTexture, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TopTexture, 0);
+    glRenderbufferStorage(GL_RENDERBUFFER, DEPTH_VALUE, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);    
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, TopTexture, 0);
+    
+    
     glColorMask(1, 1, 1, 1);
     GLenum draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(1, draw_buffers);
@@ -242,10 +248,10 @@ void GBAPPU::InitFramebuffers() {
     // add depth buffer
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, DEPTH_VALUE, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,BottomTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D ,BottomTexture, 0);
     glDrawBuffers(1, draw_buffers);
 
     CheckFramebufferInit("general bottom");
@@ -262,8 +268,8 @@ void GBAPPU::InitFramebuffers() {
 
     // add depth buffer
     glGenRenderbuffers(1, &WinDepthBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, WinDepthBuffer);        
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, WinDepthBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, DEPTH_VALUE, VISIBLE_SCREEN_WIDTH, VISIBLE_SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, WinDepthBuffer);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,WinTexture, 0);
@@ -282,13 +288,15 @@ void GBAPPU::InitBlitProgram() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
     // compile it
-    glShaderSource(vertexShader, 1, &BlitVertexShaderSource, nullptr);
+    const char* vtx_sources[] = { glsl_version, BlitVertexShaderSource };
+    glShaderSource(vertexShader, 2, vtx_sources, nullptr);
     glCompileShader(vertexShader);
     CompileShader(vertexShader, "BlitVertexShader");
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &BlitFragmentShaderSource, nullptr);
+    const char* frag_sources[] = { glsl_version, BlitFragmentShaderSource };
+    glShaderSource(fragmentShader, 2, frag_sources, nullptr);
     CompileShader(fragmentShader, "BlitFragmentShader");
 
     // create program object
@@ -303,71 +311,42 @@ void GBAPPU::InitBlitProgram() {
 
 void GBAPPU::InitBGProgram() {
     GLuint vertexShader;
-    GLuint fragmentShader, modeShaders[6];
+    GLuint fragmentShader;
 
     // create shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
-    // compile iti
-    glShaderSource(vertexShader, 1, &VertexShaderSource, nullptr);
+    // compile it
+    const char* vtx_sources[] = { glsl_version, VertexShaderSource };
+    glShaderSource(vertexShader, 2, vtx_sources, nullptr);
     glCompileShader(vertexShader);
     CompileShader(vertexShader, "BGVertexShader");
-    
+
     // create and compile fragmentshaders
+    // Combine Helper, Modes, and Main into ONE fragment shader
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    
-    const char* FSSource[]={
-        FragmentShaderSource,
-        FragmentHelperSource,
+    const char* frag_sources[] = { 
+        glsl_version, 
+        FragmentHelperSource, 
         FragmentShaderMode0Source,
         FragmentShaderMode1Source,
         FragmentShaderMode2Source,
         FragmentShaderMode3Source,
-        FragmentShaderMode4Source,        
+        FragmentShaderMode4Source,
+        FragmentShaderSource 
     };
-    glShaderSource(fragmentShader, 7, FSSource, nullptr);
+    glShaderSource(fragmentShader, 8, frag_sources, nullptr);
     CompileShader(fragmentShader, "BGFragmentShader");
-    
-
-//    modeShaders[0] = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(modeShaders[0], 1, &FragmentShaderMode0Source, nullptr);
-//    CompileShader(modeShaders[0], "modeShaders[0]");
-//
-//    modeShaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(modeShaders[1], 1, &FragmentShaderMode1Source, nullptr);
-//    CompileShader(modeShaders[1], "modeShaders[1]");
-//
-//    modeShaders[2] = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(modeShaders[2], 1, &FragmentShaderMode2Source, nullptr);
-//    CompileShader(modeShaders[2], "modeShaders[2]");
-//
-//    modeShaders[3] = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(modeShaders[3], 1, &FragmentShaderMode3Source, nullptr);
-//    CompileShader(modeShaders[3], "modeShaders[3]");
-//
-//    modeShaders[4] = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(modeShaders[4], 1, &FragmentShaderMode4Source, nullptr);
-//    CompileShader(modeShaders[4], "modeShaders[4]");
 
     // create program object
     BGProgram = glCreateProgram();
     glAttachShader(BGProgram, vertexShader);
     glAttachShader(BGProgram, fragmentShader);
-//    glAttachShader(BGProgram, modeShaders[0]);
-//    glAttachShader(BGProgram, modeShaders[1]);
-//    glAttachShader(BGProgram, modeShaders[2]);
-//    glAttachShader(BGProgram, modeShaders[3]);
-//    glAttachShader(BGProgram, modeShaders[4]);
     LinkProgram(BGProgram, "BG Program");
 
     // dump shaders
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);    
-//    glDeleteShader(modeShaders[0]);
-//    glDeleteShader(modeShaders[1]);
-//    glDeleteShader(modeShaders[2]);
-//    glDeleteShader(modeShaders[3]);
-//    glDeleteShader(modeShaders[4]);
+    glDeleteShader(fragmentShader);
 }
 
 void GBAPPU::InitObjProgram() {
@@ -385,24 +364,18 @@ void GBAPPU::InitObjProgram() {
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* frag_sources[4] = {glsl_version, "#undef OBJ_WINDOW\n",FragmentHelperSource, ObjectFragmentShaderSource};
+    const char* frag_sources[4] = {glsl_version, FragmentHelperSource, "#undef OBJ_WINDOW\n", ObjectFragmentShaderSource};
     glShaderSource(fragmentShader, 4, frag_sources, nullptr);
-    GLint sourceLength = 0;
-    glGetShaderiv(fragmentShader, GL_SHADER_SOURCE_LENGTH, &sourceLength);
-    std::string source(sourceLength, '\0');
-    glGetShaderSource(fragmentShader, sourceLength, nullptr, &source[0]);
     CompileShader(fragmentShader, "ObjectFragmentShader");
 
     // create program object
     ObjProgram = glCreateProgram();
     glAttachShader(ObjProgram, vertexShader);
     glAttachShader(ObjProgram, fragmentShader);
-
     LinkProgram(ObjProgram, "Obj Program");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-
 }
 
 void GBAPPU::InitWinBGProgram() {
@@ -413,24 +386,25 @@ void GBAPPU::InitWinBGProgram() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
     // same vertex shader as BGProgram
-    glShaderSource(vertexShader, 1, &VertexShaderSource, nullptr);
+    const char* vtx_sources[] = { glsl_version, VertexShaderSource };
+    glShaderSource(vertexShader, 2, vtx_sources, nullptr);
     glCompileShader(vertexShader);
     CompileShader(vertexShader, "WindowVertexShader");
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* WFsource[]={WindowFragmentShaderSource,FragmentHelperSource};
-    glShaderSource(fragmentShader, 2, WFsource, nullptr);
+    const char* frag_sources[] = { glsl_version, FragmentHelperSource, WindowFragmentShaderSource };
+    glShaderSource(fragmentShader, 3, frag_sources, nullptr);
     CompileShader(fragmentShader, "WindowFragmentShader");
-    
+
     // create program object
     WinBGProgram = glCreateProgram();
     glAttachShader(WinBGProgram, vertexShader);
-    glAttachShader(WinBGProgram, fragmentShader);    
+    glAttachShader(WinBGProgram, fragmentShader);
     LinkProgram(WinBGProgram, "Win BG Program");
 
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);    
+    glDeleteShader(fragmentShader);
 }
 
 void GBAPPU::InitWinObjProgram() {
@@ -447,11 +421,9 @@ void GBAPPU::InitWinObjProgram() {
 
     // create and compile fragmentshaders
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* frag_sources[4] = {glsl_version, "#define OBJ_WINDOW\n",FragmentHelperSource, ObjectFragmentShaderSource};
+    const char* frag_sources[4] = {glsl_version, FragmentHelperSource, "#define OBJ_WINDOW\n", ObjectFragmentShaderSource};
     glShaderSource(fragmentShader, 4, frag_sources, nullptr);
     CompileShader(fragmentShader, "WinObjectFragmentShader");
-
-   
 
     // create program object
     WinObjProgram = glCreateProgram();
@@ -597,7 +569,7 @@ void GBAPPU::InitObjBuffers() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1,0, GL_RGBA_INTEGER,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3,1, 0, GL_RGBA_INTEGER,
                  GL_SHORT, nullptr);
 
     ObjOAMLocation = glGetUniformLocation(ObjProgram, "OAM");
@@ -684,15 +656,15 @@ void GBAPPU::InitWinObjBuffers() {
     glVertexAttribIPointer(0, 4, GL_UNSIGNED_SHORT, sizeof(u64), (void*)0);  // OBJ attributes
     glEnableVertexAttribArray(0);
 
-//    glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
-//    //glGenTextures(1, &OAMTexture);
-//    glBindTexture(GL_TEXTURE_2D, OAMTexture);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//
-//    // dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 1, 0, GL_RGBA_INTEGER,
-//                 GL_SHORT, nullptr);
+    //glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
+    //glGenTextures(1, &OAMTexture);
+    //glBindTexture(GL_TEXTURE_1D, OAMTexture);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    //// dimensions need to be a power of 2. Since VISIBLE_SCREEN_HEIGHT is not, we have to pick the next highest one
+    //glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16I, sizeof(OAMMEM) >> 3, 0, GL_RGBA_INTEGER,
+    //             GL_SHORT, nullptr);
 
     WinObjOAMLocation = glGetUniformLocation(WinObjProgram, "OAM");
 
@@ -778,8 +750,7 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
     glBindBuffer(GL_ARRAY_BUFFER, ObjVBO);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ObjEBO);
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);    
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
 
@@ -799,7 +770,7 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
         NumberOfRegularObjVerts = BufferObjects<true, false>(BufferFrame ^ 1, scanline, batch_size);
 
         if(NumberOfRegularObjVerts>0){
-            // buffer data for regular objects
+        // buffer data for regular objects
             glBufferData(GL_ARRAY_BUFFER, sizeof(u64) * NumberOfRegularObjVerts, ObjAttrBuffer, GL_STATIC_DRAW);
         }
 
@@ -814,8 +785,8 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
 
         // bind and buffer OAM texture
         glBindTexture(GL_TEXTURE_2D, OAMTexture);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(OAMMEM) >> 3, 1, GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
-                        
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,sizeof(OAMMEM) >> 3,1,
+                        GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
 
         glUniform1ui(WinObjYClipStartLocation, scanline);
         glUniform1ui(WinObjYClipEndLocation, scanline + batch_size);
@@ -845,8 +816,7 @@ void GBAPPU::DrawObjWindow(int win_start, int win_end) {
     glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);    
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -903,7 +873,8 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
     // bind and buffer OAM texture
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::OAM));
     glBindTexture(GL_TEXTURE_2D, OAMTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sizeof(OAMMEM) >> 3, 1, GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,sizeof(OAMMEM) >> 3,1,
+                    GL_RGBA_INTEGER, GL_SHORT, OAMBuffer[BufferFrame ^ 1][scanline]);
 
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::LCDIO));
     glBindTexture(GL_TEXTURE_2D, IOTexture);
@@ -915,7 +886,6 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ObjEBO);
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);    
-    
 
     glUniform1ui(ObjYClipStartLocation, scanline);
     glUniform1ui(ObjYClipEndLocation, scanline + amount);
@@ -972,7 +942,7 @@ void GBAPPU::DrawObjects(u32 scanline, u32 amount) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    //glBindTexture(GL_TEXTURE_1D, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -1098,11 +1068,8 @@ struct s_framebuffer GBAPPU::Render() {
     glBlendFunc(GL_ONE, GL_ZERO);
     glDisable(GL_SCISSOR_TEST);
 
-    if (FrameSkip) {
-        DrawMutex.lock();
-    }
-
-    u32 DrawFrame = BufferFrame ^ 1;
+    std::unique_lock<std::mutex> lock(DrawMutex); // Lock to safely read DrawFrame index
+    u32 DrawFrame = BufferFrame ^ 1;    
 
     // buffer PAL texture
     glActiveTexture(GL_TEXTURE0 + static_cast<u32>(BufferBindings::PAL));
@@ -1124,7 +1091,7 @@ struct s_framebuffer GBAPPU::Render() {
     // use normal framebuffer again
     glBindFramebuffer(GL_FRAMEBUFFER, TopFramebuffer);
     glViewport(0, 0, INTERNAL_FRAMEBUFFER_WIDTH, INTERNAL_FRAMEBUFFER_HEIGHT);
-    glClearColor(0, 0, 0, 0);
+    glClearColor(0, 0, 0, -1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindFramebuffer(GL_FRAMEBUFFER, BottomFramebuffer);
@@ -1167,15 +1134,19 @@ struct s_framebuffer GBAPPU::Render() {
     }
 #endif
 
+    
+    
     if (FrameSkip) {
-        DrawMutex.unlock();
+        lock.unlock();
     }
-    else {
-        std::lock_guard<std::mutex> lock(DrawMutex);
-        glFinish();
-        FrameDrawn = true;
-        FrameDrawnVariable.notify_all();
+    
+    // Always set FrameDrawn for non-frameskip case
+    if (!FrameSkip) {
+         FrameDrawn = true;
+         FrameDrawnVariable.notify_all();
     }
+     
+    // lock releases on scope exit
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

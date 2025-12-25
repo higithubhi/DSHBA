@@ -1,10 +1,6 @@
 // externally added
-// BEGIN ObjectFragmentShaderSource
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
 
+// BEGIN ObjectFragmentShaderSource
 
 #define attr0 x
 #define attr1 y
@@ -30,13 +26,7 @@ uniform uint YClipEnd;
 vec4 ColorCorrect(vec4 color);
 vec4 AlphaCorrect(vec4 color, uint layer, uint window);
 
-uint readVRAM8(uint address);
-uint readVRAM16(uint address);
-uint readVRAM32(uint address);
-
-uint readIOreg(uint address);
-ivec4 readOAMentry(uint index);
-vec4 readPALentry(uint index);
+// Prototypes defined in helpers
 
 uint getWindow(uint x, uint y);
 
@@ -49,21 +39,21 @@ vec4 RegularObject(bool OAM2DMapping) {
     // mosaic effect
     if ((OBJ.attr0 & ++ATTR0_MOSAIC++) != 0u) {
         uint MOSAIC = readIOreg(++MOSAIC++);
-        dx -= dx % (((MOSAIC & 0xf00u) >> 8u) + 1u);
-        dy -= dy % (((MOSAIC & 0xf000u) >> 12u) + 1u);
+        dx -= dx % (((MOSAIC & 0xf00u) >> 8) + 1u);
+        dy -= dy % (((MOSAIC & 0xf000u) >> 12) + 1u);
     }
 
     uint PixelAddress;
     if ((OBJ.attr0 & ++ATTR0_CM++) == ++ATTR0_4BPP++) {
-        uint PaletteBank = OBJ.attr2 >> 12u;
-        PixelAddress = TID << 5u;
+        uint PaletteBank = OBJ.attr2 >> 12;
+        PixelAddress = TID << 5;
 
         // get base address for line of tiles (vertically)
         if (OAM2DMapping) {
-            PixelAddress += ObjWidth * (dy >> 3u) << 2u;
+            PixelAddress += ObjWidth * (dy >> 3) << 2;
         }
         else {
-            PixelAddress += 32u * 0x20u * (dy >> 3u);
+            PixelAddress += 32u * 0x20u * (dy >> 3);
         }
         PixelAddress += (dy & 7u) << 2; // offset within tile for sliver
 
@@ -71,20 +61,20 @@ vec4 RegularObject(bool OAM2DMapping) {
         PixelAddress = (PixelAddress & 0x7fffu) | 0x10000u;
 
         // horizontal offset:
-        PixelAddress += (dx >> 3u) << 5u;    // of tile
-        PixelAddress += ((dx & 7u) >> 1u);  // in tile
+        PixelAddress += (dx >> 3) << 5;    // of tile
+        PixelAddress += ((dx & 7u) >> 1);  // in tile
 
         uint VRAMEntry = readVRAM8(PixelAddress);
         if ((dx & 1u) != 0u) {
             // upper nibble
-            VRAMEntry >>= 4u;
+            VRAMEntry >>= 4;
         }
         else {
             VRAMEntry &= 0x0fu;
         }
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry(0x100u + (PaletteBank << 4u) + VRAMEntry).rgb, 1.0);
+            return vec4(readPALentry(0x100u + (PaletteBank << 4) + VRAMEntry).rgb, 1);
         }
         else {
             // transparent
@@ -99,7 +89,7 @@ vec4 RegularObject(bool OAM2DMapping) {
             PixelAddress += ObjWidth * (dy & ~7u);
         }
         else {
-            PixelAddress += 32u * 0x20u * (dy >> 3u);
+            PixelAddress += 32u * 0x20u * (dy >> 3);
         }
         PixelAddress += (dy & 7u) << 3;
 
@@ -160,7 +150,7 @@ vec4 AffineObject(bool OAM2DMapping) {
     ) / 256.0;  // fixed point stuff
 
     ivec2 pos = ivec2(rotscale * (InObjPos - p1) + p0);
-    if (!InsideBox(vec2(pos), vec2(0.0, 0.0), vec2(ObjWidth, ObjHeight))) {
+    if (!InsideBox(vec2(pos), vec2(0, 0), vec2(ObjWidth, ObjHeight))) {
         // out of bounds
         discard;
     }
@@ -168,40 +158,40 @@ vec4 AffineObject(bool OAM2DMapping) {
     // mosaic effect
     if ((OBJ.attr0 & ++ATTR0_MOSAIC++) != 0u) {
         uint MOSAIC = readIOreg(++MOSAIC++);
-        pos.x -= pos.x % int(((MOSAIC & 0xf00u) >> 8u) + 1u);
-        pos.y -= pos.y % int(((MOSAIC & 0xf000u) >> 12u) + 1u);
+        pos.x -= pos.x % int(((MOSAIC & 0xf00u) >> 8) + 1u);
+        pos.y -= pos.y % int(((MOSAIC & 0xf000u) >> 12) + 1u);
     }
 
     // get actual pixel
     uint PixelAddress = 0x10000u;  // OBJ VRAM starts at 0x10000 in VRAM
     PixelAddress += TID << 5;
-        if (OAM2DMapping) {
-            PixelAddress += ObjWidth * uint(pos.y & ~7) >> 1u;
-        }
-        else {
-            PixelAddress += 32u * 0x20u * uint(pos.y >> 3);
-        }
+    if (OAM2DMapping) {
+        PixelAddress += ObjWidth * uint(pos.y & ~7) >> 1;
+    }
+    else {
+        PixelAddress += 32u * 0x20u * uint(pos.y >> 3);
+    }
 
     // the rest is very similar to regular sprites:
     if ((OBJ.attr0 & ++ATTR0_CM++) == ++ATTR0_4BPP++) {
-        uint PaletteBank = OBJ.attr2 >> 12u;
-        PixelAddress += uint(pos.y & 7) << 2u; // offset within tile for sliver
+        uint PaletteBank = OBJ.attr2 >> 12;
+        PixelAddress += uint(pos.y & 7) << 2; // offset within tile for sliver
 
         // horizontal offset:
-        PixelAddress += uint(pos.x >> 3) << 5u;    // of tile
-        PixelAddress += uint(pos.x & 7) >> 1u;  // in tile
+        PixelAddress += uint(pos.x >> 3) << 5;    // of tile
+        PixelAddress += uint(pos.x & 7) >> 1;  // in tile
 
         uint VRAMEntry = readVRAM8(PixelAddress);
         if ((pos.x & 1) != 0) {
             // upper nibble
-            VRAMEntry >>= 4u;
+            VRAMEntry >>= 4;
         }
         else {
             VRAMEntry &= 0x0fu;
         }
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry(0x100u + (PaletteBank << 4u) + VRAMEntry).rgb, 1);
+            return vec4(readPALentry(0x100u + (PaletteBank << 4) + VRAMEntry).rgb, 1);
         }
         else {
             // transparent
@@ -209,10 +199,10 @@ vec4 AffineObject(bool OAM2DMapping) {
         }
     }
     else {
-        PixelAddress += (uint(pos.y) & 7u) << 3u; // offset within tile for sliver
+        PixelAddress += (uint(pos.y) & 7u) << 3; // offset within tile for sliver
 
         // horizontal offset:
-        PixelAddress += uint(pos.x >> 3) << 6u;  // of tile
+        PixelAddress += uint(pos.x >> 3) << 6;  // of tile
         PixelAddress += uint(pos.x & 7);        // in tile
 
         uint VRAMEntry = readVRAM8(PixelAddress);
@@ -276,11 +266,11 @@ void main() {
         FragColor = AlphaCorrect(FragColor, 4u, window);
     }
     else {
-        FragColor = vec4(FragColor.rgb, -1);
+        FragColor = vec4(FragColor.rgb, 0.0);
     }
 #else
     // RegularObject/AffineObject will only return if it is nontransparent
-    uint WINOBJ = (readIOreg(++WINOUT++) >> 8u) & 0x3fu;
+    uint WINOBJ = (readIOreg(++WINOUT++) >> 8) & 0x3fu;
 
     FragColor.r = WINOBJ;
 #endif

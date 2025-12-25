@@ -143,7 +143,8 @@ int ui_run() {
     // 初始化帧捕获器
     Frontend.frame_capture = std::make_shared<FrameCapture>(); 
     Frontend.frame_capture->setEnabled(false);
-    Frontend.frame_capture->setSkipFrames(2357);
+    Frontend.frame_capture->setSkipFrames(800);
+    Frontend.frame_capture->setMaxFrames(1000);
     
     
     init_controller_mapping(CONTROLLER_MAP_FILE);
@@ -167,8 +168,9 @@ int ui_run() {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-    auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | // SDL_WINDOW_RESIZABLE |
-                                           SDL_WINDOW_ALLOW_HIGHDPI);
+    auto window_flags = (SDL_WindowFlags) (SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN  // SDL_WINDOW_RESIZABLE |
+                                            |SDL_RENDERER_PRESENTVSYNC
+                                           |SDL_WINDOW_ALLOW_HIGHDPI);
     
      while (SDL_AtomicGet(&bCanCreateWindow) == SDL_FALSE) {
         SDL_Delay(10);
@@ -178,7 +180,7 @@ int ui_run() {
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // vsync
 
-    debugger_video_init(glsl_version, window, &gl_context);
+    debugger_video_init("#version 300 es", window, &gl_context);
     if (Frontend.video_init) {
         Frontend.video_init();
     }
@@ -260,17 +262,17 @@ int ui_run() {
         }
 
         // Start the Dear ImGui frame
-        //ImGui_ImplOpenGL3_NewFrame();
-        //ImGui_ImplSDL2_NewFrame(window);
-        //ImGui::NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window);
+        ImGui::NewFrame();
 
-        //debugger_render();
-        // ImGui::ShowDemoWindow();
+        debugger_render();
+        //ImGui::ShowDemoWindow();
 
         //Frontend.file_dialog.Handle();
 
         // Rendering
-        //ImGui::Render();
+        ImGui::Render();
 
 #ifdef SHOW_EXAMPLE_MENU
         ImGui::ShowDemoWindow(NULL);
@@ -311,7 +313,7 @@ int ui_run() {
         }
 
         // then draw the imGui stuff over it
-        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // 帧捕获 - 在交换缓冲区之前捕获当前帧
         if (Frontend.frame_capture && Frontend.frame_capture->isEnabled()) {
@@ -320,6 +322,7 @@ int ui_run() {
         
         // frameswap
         SDL_GL_SwapWindow(window);
+        SDL_Log("--------- render\n");
     }
 
     // Cleanup

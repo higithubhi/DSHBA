@@ -1,9 +1,5 @@
 // BEGIN FragmentShaderSource
-#version 320 es
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
+
 
 in vec2 screenCoord;
 
@@ -12,18 +8,9 @@ uniform uint ReferenceLine2[++VISIBLE_SCREEN_HEIGHT++];
 uniform uint ReferenceLine3[++VISIBLE_SCREEN_HEIGHT++];
 
 // BG 0 - 3 or 4 for backdrop
-uniform uint BG;
+// BG defined in helpers
 
-vec4 ColorCorrect(vec4 color);
-void CheckBottom(uint layer, uint window);
-vec4 AlphaCorrect(vec4 color, uint layer, uint window);
-
-uint readVRAM8(uint address);
-uint readVRAM16(uint address);
-
-uint readVRAM32(uint address);
-uint readIOreg(uint address);
-vec4 readPALentry(uint index);
+// Prototypes defined in helpers
 
 uint getWindow(uint x, uint y);
 
@@ -92,7 +79,7 @@ vec4 regularScreenEntryPixel(uint dx, uint dy, uint ScreenEntry, uint CBB, bool 
         }
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1.0);
+            return vec4(readPALentry((PaletteBank << 4) + VRAMEntry).rgb, 1);
         }
     }
     else {
@@ -104,7 +91,7 @@ vec4 regularScreenEntryPixel(uint dx, uint dy, uint ScreenEntry, uint CBB, bool 
         uint VRAMEntry = readVRAM8(Address);
 
         if (VRAMEntry != 0u) {
-            return vec4(readPALentry(VRAMEntry).rgb, 1.0);
+            return vec4(readPALentry(VRAMEntry).rgb, 1);
         }
     }
 
@@ -203,8 +190,8 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
     );
 
     vec2 pos  = screen_pos - vec2(0, ReferenceLine);
-    int x_eff = int(float(BGX) + dot(vec2(PA, PB), pos));
-    int y_eff = int(float(BGY) + dot(vec2(PC, PD), pos));
+    int x_eff = int(BGX + int(dot(vec2(PA, PB), pos)));
+    int y_eff = int(BGY + int(dot(vec2(PC, PD), pos)));
 
     // correct for fixed point math
     x_eff >>= 8;
@@ -225,7 +212,7 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
     if ((BGCNT & ++BG_MOSAIC++) != 0u) {
         uint MOSAIC = readIOreg(++MOSAIC++);
         x_eff -= x_eff % int((MOSAIC & 0xfu) + 1u);
-        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4u) + 1u);
+        y_eff -= y_eff % int(((MOSAIC & 0xf0u) >> 4) + 1u);
     }
 
     uint TIDAddress = (SBB << 11u);  // base
@@ -240,7 +227,7 @@ vec4 affineBGPixel(uint BGCNT, vec2 screen_pos) {
         discard;
     }
 
-    return vec4(readPALentry(VRAMEntry).rgb, 1.0);
+    return vec4(readPALentry(VRAMEntry).rgb, 1);
 }
 
 vec4 mode0(uint, uint);
@@ -273,6 +260,9 @@ void main() {
     if ((window & (1u << BG)) == 0u) {
         discard;
     }
+
+   //uint BGCNT = readIOreg(0x08u + (BG * 2u));
+   //gl_FragDepth = getDepth(BGCNT);
 
     uint DISPCNT = readIOreg(0u);
 

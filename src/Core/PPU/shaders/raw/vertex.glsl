@@ -1,9 +1,5 @@
 // BEGIN VertexShaderSource
-#version 320 es
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
+
 
 layout (location = 0) in vec2 position;
 
@@ -18,7 +14,7 @@ void main() {
     );
 
     screenCoord = vec2(
-        float(++VISIBLE_SCREEN_WIDTH++) * (1.0 + position.x) / 2.0,
+        float(++VISIBLE_SCREEN_WIDTH++) * float((1.0 + position.x)) / 2.0,
         position.y
     );
 

@@ -1,9 +1,5 @@
 // BEGIN BlitFragmentShaderSource
-#version 320 es
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
+
 
 in vec2 texCoord;
 
@@ -18,16 +14,17 @@ void main() {
 
     // default: pick top
     FragColor = vec4(
-        top.rgb, 1.0
+        top.rgb, 1
     );
-
     if ((bottom.a != 0.0) && (bottom.a <= 0.5)) {
+        // there was a bottom layer in the bottom framebuffer
         if (top.a >= 0.5) {
-            float topASNorm = (top.a * 2.0) - 1.0;
-            float bottomASNorm = (bottom.a * 2.0) - 1.0;
-            vec3 blendedColor = top.rgb * topASNorm - 2.0 * bottom.rgb * (bottomASNorm + 0.25);
+            float top_a_decoded = (top.a - 0.5) * 2.0;
+            float bottom_a_decoded = (bottom.a - 0.5) * 2.0;
+
             FragColor = vec4(
-                blendedColor, 1.0
+                // correct for how we store bottom alpha
+                top.rgb * top_a_decoded - 2.0 * bottom.rgb * (bottom_a_decoded + 0.25), 1
             );
         }
     }

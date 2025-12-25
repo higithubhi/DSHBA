@@ -1,16 +1,7 @@
 // BEGIN FragmentShaderMode2Source
 
 
-uint readVRAM8(uint address);
-uint readVRAM16(uint address);
-uint readVRAM32(uint address);
-
-uint readIOreg(uint address);
-vec4 readPALentry(uint index);
-
-vec4 regularBGPixel(uint BGCNT, uint x, uint y);
-vec4 affineBGPixel(uint BGCNT, vec2 screen_pos);
-float getDepth(uint BGCNT);
+// Declarations moved to shared header (fragment.glsl/fragment_helpers.glsl)
 
 vec4 mode2(uint x, uint y, vec2 screen_pos) {
     if (BG < 2u) {

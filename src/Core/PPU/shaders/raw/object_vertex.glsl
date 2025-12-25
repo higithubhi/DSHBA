@@ -1,10 +1,6 @@
 // defined externally
-// BEGIN ObjectVertexShaderSource
-precision mediump float;
-precision highp int;
-precision mediump usampler2D;
-precision mediump isampler2D;
 
+// BEGIN ObjectVertexShaderSource
 
 #define attr0 x
 #define attr1 y
